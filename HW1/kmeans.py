@@ -3,79 +3,52 @@
 import numpy as np
 import sys
 
-class Centroid:
-    def __init__(self, coords):
-        self.coords = coords
-        self.points = []
-
-    def add_point(self, point):
-        self.points.append(point)
-
-    def point_coord_array(self):
-        arr = []
-        for point in self.points:
-            arr.append(point.coords)
-        return arr
-
-    def del_points(self):
-        self.points = []
-    
-
-class DataPoint:
-    def __init__(self, coords, centroid):
-        self.coords = coords
-        self.centroid = centroid
-
+# each centroid and point is represented by its index in list centroids and datapoints respectively
+# every vector is a list of coordinates
+# data structures used:
+# cent_to_dots_map - dictionary where keys are indexes of centroids and values are lists of vectors assigned to that centroid
+# dot_to_cent_map - dictionary where keys are indexes of points and values are the centroid vector that dot is assigned to
 
 def init_datapoints(K, filename):
     centroids = []
     datapoints = []
-    coords = []
     i = 0
     with open(filename) as my_file:
         for line in my_file:
             coords = [float(x) for x in line.strip().split(",")]
-            cent = Centroid(coords)
             if (i < K):
-                centroids.append(cent)
-            datapoints.append(DataPoint(coords, cent))
-            coords = []
-            i += 1
+                centroids.append(coords)
+                i += 1
+            datapoints.append(coords)
     return (centroids, datapoints)
 
-
-def assign_to_cluster(vec_xi, i, centroids):
+def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     min_dist = float('inf')
     min_cent = 0
     for j, vec_cent in enumerate(centroids):
-        dist = euclid_dist(vec_xi.coords, vec_cent.coords)
+        dist = euclid_dist(vec_xi, vec_cent)
         if (dist <= min_dist):
             min_dist = dist
             min_cent = j
-    vec_xi.centroid = centroids[min_cent]
-    centroids[min_cent].add_point(vec_xi)
-    
-    
-def update_centroids(centroids):
-    for cent in centroids:
-        all_coords = np.array(cent.point_coord_array())
-        mu_k = np.mean(all_coords, axis=0)
-        cent.coords = mu_k
+    cent_to_dots_map[min_cent].append(vec_xi)
+    dot_to_cent_map[i] = centroids[min_cent]
+
+def update_centroids(centroids, cent_to_dots_map, datapoints):
+    for i in range(len(centroids)):
+        all_coords = np.array(cent_to_dots_map[i])
+        centroids[i] = np.mean(all_coords, axis=0)
+
+def clear(cent_to_dots_map):
+    for key in cent_to_dots_map:
+        cent_to_dots_map[key] = []
 
 def convergence(centroids, prev, eps):
-    print("see prev:")
-    for cent2 in prev:
-        print(",".join(str(x) for x in cent2.coords))
-    print("see updated centroids:")
-    for cent in centroids:
-            print(",".join(str(x) for x in cent.coords))
     for cent1, cent2 in zip(centroids, prev):
-        print("cent1 coords", cent1.coords, "cent2 coords:", cent2.coords)
-        delta_mu = euclid_dist(cent1.coords, cent2.coords)
-        # print("delta_mu", delta_mu)
+        delta_mu = euclid_dist(cent1, cent2)
         if (delta_mu >= eps):
             return False
     return True
+
 
 def euclid_dist(vector1, vector2):
     point1 = np.array(vector1)
@@ -99,32 +72,46 @@ def validate_input(K, iter, filename):
         return False
 
 
-def empty_cents_pts(centroids):
-    for cent in centroids:
-        cent.del_points()
-
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
     centroids, datapoints = init_datapoints(K, filename)
+    cent_to_dots_map = {}
+    for i in range(len(centroids)):
+        cent_to_dots_map[i] = []
+    dot_to_cent_map = {}
     conv_flag = False
     j = 0
     while ((not conv_flag) and (j < iter)):
-        prev = centroids.copy()
-        empty_cents_pts(centroids)
+        prev = []
+        for cent in centroids:
+            prev.append(cent.copy())
+        clear(cent_to_dots_map)
         for i, vec_xi in enumerate(datapoints):
-            assign_to_cluster(vec_xi, i, centroids)
-        update_centroids(centroids)
-        #print("iter:", j)
+            assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map)
+        update_centroids(centroids, cent_to_dots_map, datapoints)
         conv_flag = convergence(centroids, prev, eps)
-        #print("flag: ", conv_flag)
         j = j + 1
 
-    print("j", j)
     for cent in centroids:
-       print(",".join(str(x) for x in cent.coords))
+        exp = ""
+        for c in cent:
+            exp += '{:.4f}'.format(c) + ","
+        exp[::-1]
+        print(exp)
 
-K, iter, filename = sys.argv[1:]
-K = float(K)
-iter = float(K)
-if (validate_input(K, iter, filename)):
-    run_kmeans(K, filename, iter)
+
+cont = True
+if (len(sys.argv) == 4):
+    K, iter, filename = sys.argv[1:]
+elif (len(sys.argv) == 3):
+    K, filename = sys.argv[1:]
+    iter = 200
+else:
+    print("An Error Has Occured")
+    cont = False
+
+if (cont):
+    K = float(K)
+    iter = float(iter)
+    if (validate_input(K, iter, filename)):
+        run_kmeans(K, filename, iter)
