@@ -9,6 +9,24 @@ import sys
 # cent_to_dots_map - dictionary where keys are indexes of centroids and values are lists of vectors assigned to that centroid
 # dot_to_cent_map - dictionary where keys are indexes of points and values are the centroid vector that dot is assigned to
 
+
+def validate_input(K, iter, filename):
+    try:
+        f = open(filename, "r")
+        line_count = sum(1 for _ in f)
+        if (K < 1 or K > line_count or np.floor(K) != K):
+            print("Invalid number of clusters!")
+            return False
+        if (iter < 1 or iter > 1000 or np.floor(iter) != iter):
+            print("Invalid maximum Iteration!")
+            return False
+        f.close()
+        return True
+    except IOError: 
+        print("An Error Has Occured")
+        return False
+
+
 def init_datapoints(K, filename):
     centroids = []
     datapoints = []
@@ -49,28 +67,10 @@ def convergence(centroids, prev, eps):
             return False
     return True
 
-
 def euclid_dist(vector1, vector2):
     point1 = np.array(vector1)
     point2 = np.array(vector2)
     return np.linalg.norm(point1 - point2)
-
-def validate_input(K, iter, filename):
-    try:
-        f = open(filename, "r")
-        line_count = sum(1 for _ in f)
-        if (K < 1 or K > line_count or np.floor(K) != K):
-            print("Invalid number of clusters!")
-            return False
-        if (iter < 1 or iter > 1000 or np.floor(iter) != iter):
-            print("Invalid maximum Iteration!")
-            return False
-        f.close()
-        return True
-    except IOError: 
-        print("An Error Has Occured")
-        return False
-
 
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
