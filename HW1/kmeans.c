@@ -1,6 +1,21 @@
 # include <stdio.h>
 # include <stdlib.h>
 
+int validate_input(int argc, char **argv);
+
+void init_datapoints(int argc, char **argv);
+
+void assign_to_clusters();
+
+void update_centroids();
+
+int convergence();
+
+int euclid_dist(coord vector1, coord vetor2);
+
+void run_kmenas();
+
+
 struct coord
 {
     double value;
@@ -54,3 +69,4 @@ int main(int argc, char **argv)
 
     return 0;
 }
+
