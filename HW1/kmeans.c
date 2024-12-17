@@ -26,7 +26,9 @@ struct centroids
     struct new_coords *new_coords; /* So we can add up coord and calc new mean */
 };
 
-int validate_input(int argc, char **argv);
+void print_point(struct data_points *point);
+
+int validate_input(int argc, char **argv, int N);
 
 struct data_points* init_datapoints();
 
@@ -44,20 +46,39 @@ void run_kmenas();
 
 void reset_centroids();
 
-int validate_input(int argc, char **argv){
+void print_point(struct data_points *point){
+    struct coord *coord;
+    coord = point->coords;
+    printf("Printing point in index %d\n", point->idx);
+    while (coord != NULL){
+        printf("%f ",coord->value);
+        coord = coord->next_coord;
+    }
+    printf("\n");
+}
+
+int validate_input(int argc, char **argv, int N){
     long K;
     long iter;
 
-    if (argc != 2){
+    if (argc != 3){
         return 0;
     }
     else{
          /* TODO: Handle exceptions */
-        K = strtol(argv[0], NULL, 10);
-        iter = strtol(argv[1], NULL, 10); 
-        /* TODO: Check values! */
-        printf("K = %ld/n", K);
-        printf("iter = %ld/n", iter);    
+        K = strtol(argv[1], NULL, 10);
+        iter = strtol(argv[2], NULL, 10); 
+        /* Check values */
+        if (K <= 1 || K >= N){
+            printf("Invalid number of clusters!");
+            return 0;
+        }
+        if (iter <= 1 || iter >= 1000){
+            printf("Invalid maximum iteration!");
+            return 0;
+        }
+        printf("K = %ld\n", K);
+        printf("iter = %ld\n", iter);    
     }
     return 1;
 }
@@ -81,12 +102,11 @@ struct data_points* init_datapoints()
     curr_point = head_point;
     curr_point->next_point = NULL;
 
-    /* Read input */
     while (scanf("%lf%c", &n, &c) == 2)
-    {
-        /* last value in the coordinate. */
+    {        
+        /* last value in the coordinate- Files end with an empty line. */
         if (c == '\n')
-        {
+        {        
             curr_coord->value = n;
             curr_point->coords = head_coord;
             curr_point->next_point = malloc(sizeof(struct data_points));
@@ -105,23 +125,33 @@ struct data_points* init_datapoints()
         curr_coord = curr_coord->next_coord;
         curr_coord->next_coord = NULL;        
     }
-    return head_point;
+    curr_point->next_point = head_point;    
+    /* Returning the last point, so we can infer the anount of points.
+        A better solution should be found TODO */   
+    return curr_point;
 }
 
-int main(int argc, char **argv){
+int main(int argc, char **argv){    
     struct data_points *head_point;
+    int points_cnt;
     int valid;
     /*
     int K;
     int iter;
     K = atoi (argv[0]);
     iter = atoi (argv[1]); */
-    valid = validate_input(argc, argv);
+    printf("Test\n");
+    head_point = init_datapoints();
+    /* Get the number of points N and then get the head point to be the one with idx 0*/
+    points_cnt = head_point->idx +1;
+    head_point = head_point->next_point;
+    print_point(head_point);
+    valid = validate_input(argc, argv, points_cnt);
+
     if (valid == 0){
         exit(0);
     }
-    head_point = init_datapoints();
-    printf("%d", head_point-> idx);
+    printf("The number of points is %d\n", points_cnt);
     return 0;
 
 }
