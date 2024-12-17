@@ -28,11 +28,15 @@ struct centroids
 
 void print_point(struct data_points *point);
 
-int validate_input(int argc, char **argv, int N);
+void print_centroid(struct centroids *centroid);
+
+int get_k(char **argv, int N);
+
+int get_iter(char **argv);
 
 struct data_points* init_datapoints();
 
-/* struct centroids init_centroids();*/
+struct centroids* init_centroids(int K, struct data_points* data_point);
 
 void assign_to_clusters();
 
@@ -47,9 +51,11 @@ void run_kmenas();
 void reset_centroids();
 
 void print_point(struct data_points *point){
+    /* Debug printint of a data point. */
     struct coord *coord;
     coord = point->coords;
     printf("Printing point in index %d\n", point->idx);
+    printf("Printing point values:\n");  
     while (coord != NULL){
         printf("%f ",coord->value);
         coord = coord->next_coord;
@@ -57,35 +63,59 @@ void print_point(struct data_points *point){
     printf("\n");
 }
 
-int validate_input(int argc, char **argv, int N){
+void print_centroid(struct centroids *centroid){
+    /* Debug printint of a centroid. */
+    struct coord *coord;
+    coord = centroid->coords;
+    printf("Num of points in centroid is %d\n", centroid->cnt_points);
+    printf("Printing centroid values:\n");    
+    while (coord != NULL){
+        printf("%f ",coord->value);
+        coord = coord->next_coord;
+    }
+    printf("\n");
+}
+
+int get_k(char **argv, int N){
+    /* Validates the value of N as received in argv.
+    valid values:
+    1 < K < N, K is a natural number.
+    */
     long K;
+    /* TODO: Handle exceptions */
+    K = strtol(argv[1], NULL, 10);
+    /* Check values */
+    if (K <= 1 || K >= N){
+        printf("Invalid number of clusters!");
+        return -1;
+    }
+    return K;
+}
+
+
+int get_iter(char **argv){
+    /* Validates the value of iter as received in argv.
+    valid values:
+    1 < iter < 1000, iter is a natural number.
+    */
     long iter;
 
-    if (argc != 3){
-        return 0;
+    /* TODO: Handle exceptions */
+    iter = strtol(argv[2], NULL, 10); 
+    /* Check values */
+    if (iter <= 1 || iter >= 1000){
+        printf("Invalid maximum iteration!");
+        return -1;
     }
-    else{
-         /* TODO: Handle exceptions */
-        K = strtol(argv[1], NULL, 10);
-        iter = strtol(argv[2], NULL, 10); 
-        /* Check values */
-        if (K <= 1 || K >= N){
-            printf("Invalid number of clusters!");
-            return 0;
-        }
-        if (iter <= 1 || iter >= 1000){
-            printf("Invalid maximum iteration!");
-            return 0;
-        }
-        printf("K = %ld\n", K);
-        printf("iter = %ld\n", iter);    
-    }
-    return 1;
+    printf("iter = %ld\n", iter);    
+    
+    return iter;
 }
+
 
 struct data_points* init_datapoints()
 {
-    /* Initialization */
+    /* Initialization- code taken from lecture notes. */
     struct coord *head_coord, *curr_coord;
     struct data_points *head_point, *curr_point ;
     
@@ -131,27 +161,72 @@ struct data_points* init_datapoints()
     return curr_point;
 }
 
+struct centroids* init_centroids(int K, struct data_points* data_point){
+    /* Initialize centroids with values of the first K data points. */
+    struct data_points *curr_point;
+    struct centroids *head_centroid, *curr_centroid;
+    struct coord *head_coord, *curr_cent_coord, *curr_pt_coord;
+    
+    int i;
+    curr_point = data_point;
+    head_centroid = malloc(sizeof(struct centroids));
+    curr_centroid = head_centroid;
+    for (i = 0; i < K; i++){
+        /* At initiation, there are no points allocated to any centroid, and no need to update the coordinations.*/
+        curr_centroid->cnt_points = 0;
+        curr_centroid->new_coords = NULL;        
+        /*TODO: Copy value of coords from the first K points to the K centroids. */
+        head_coord = malloc(sizeof(struct coord));
+        curr_cent_coord = head_coord;  
+        curr_pt_coord = curr_point->coords;    
+        /* Copy each value in the coordinate*/  
+        while(curr_pt_coord != NULL){                        
+            curr_cent_coord->value = curr_pt_coord->value;            
+            curr_pt_coord = curr_pt_coord->next_coord;
+            /*TODO: I'm not sure this is the most elegant way to do this */
+            if (curr_pt_coord == NULL){
+                curr_cent_coord->next_coord = head_coord;
+            }
+            else{
+                curr_cent_coord->next_coord = malloc(sizeof(struct coord));
+                curr_cent_coord = curr_cent_coord->next_coord;
+            }            
+        }        
+        if (i != K-1){
+            curr_point = curr_point->next_point;
+            curr_centroid->next_centroid = malloc(sizeof(struct centroids));
+            curr_centroid = curr_centroid->next_centroid;
+        }
+    }
+    print_centroid(curr_centroid);
+    curr_centroid->next_centroid = head_centroid;
+    return head_centroid;
+}
+
 int main(int argc, char **argv){    
     struct data_points *head_point;
+    struct centroids *head_centroid;
     int points_cnt;
-    int valid;
-    /*
     int K;
     int iter;
-    K = atoi (argv[0]);
-    iter = atoi (argv[1]); */
+
     printf("Test\n");
     head_point = init_datapoints();
     /* Get the number of points N and then get the head point to be the one with idx 0*/
     points_cnt = head_point->idx +1;
     head_point = head_point->next_point;
-    print_point(head_point);
-    valid = validate_input(argc, argv, points_cnt);
 
-    if (valid == 0){
+    K = get_k(argv, points_cnt);
+    iter = get_iter(argv);
+    if (argc != 3 || K == -1 || iter == -1){
         exit(0);
     }
+    
+    head_centroid = init_centroids(K, head_point);
+    
     printf("The number of points is %d\n", points_cnt);
+    print_point(head_point); 
+    print_centroid(head_centroid);
     return 0;
 
 }
