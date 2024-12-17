@@ -51,7 +51,7 @@ void update_centroids();
 
 int convergence();
 
-void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int iter);
+void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
 void reset_centroids();
 
@@ -269,11 +269,14 @@ void assign_to_clusters(struct data_points* head_point, struct centroids* head_c
         curr_point = curr_point->next_point;
     }    
 }
-/*
-void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int iter){
-    int eps = 0.001; 
 
-}*/
+void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
+    /* int eps = 0.001; */
+    printf("Iter %d", iter);
+    /* Iterate iter times TODO*/
+    assign_to_clusters(head_point, head_centroid, K, num_points);
+    print_centroid(head_centroid);
+}
 
 int main(int argc, char **argv){    
     struct data_points *head_point;
@@ -300,6 +303,7 @@ int main(int argc, char **argv){
     printf("The number of points is %d\n", points_cnt);
     print_point(head_point); 
     print_centroid(head_centroid);     
+    run_kmeans(head_point, head_centroid, K, iter, points_cnt);
     return 0;
 
 }
