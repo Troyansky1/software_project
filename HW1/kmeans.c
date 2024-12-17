@@ -1,5 +1,6 @@
 # include <stdio.h>
 # include <stdlib.h>
+# include <math.h>
 
 /* Structs should be documented better!*/
 
@@ -40,7 +41,7 @@ struct data_points* init_datapoints();
 
 struct centroids* init_centroids(int K, struct data_points* data_point);
 
-int euclid_dist(struct coord* data_point1, struct coord* data_point2);
+double euclid_dist(struct coord* data_point1, struct coord* data_point2);
 
 void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K);
 
@@ -208,8 +209,19 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     return head_centroid;
 }
 
-int euclid_dist(struct coord* data_point1, struct coord* data_point2){
-    /* Calculate the euclidean distance between 2 points */
+double euclid_dist(struct coord* data_point1, struct coord* data_point2){
+    /* Calculate the euclidean distance between 2 points.
+    Assuming they have the same number of coordinates. */
+    int sum;
+    int curr_diff;
+    while(data_point1 != NULL && data_point2 != NULL){
+        curr_diff = data_point1 - data_point2;
+        sum += pow(curr_diff, 2);
+        data_point1 = data_point1->next_coord;
+        data_point2 = data_point2->next_coord;
+    }
+    return sqrt(sum);
+
     /* Just to end the error TODO*/
     printf("%f%f", data_point1->value, data_point2->value );
     return 0;
@@ -221,7 +233,7 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     struct coord *cent_new_coord, *curr_pt_coord;
     int min_dist;
     int i;
-    int dist;
+    double dist;
     curr_centroid = head_centroid;
     /* Find the closest centroid to the point. */
     for (i = 0; i < K; i++){
