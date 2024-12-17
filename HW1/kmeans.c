@@ -25,7 +25,7 @@ struct centroids
     struct centroids *next_centroid;
     struct coord *coords;
     int cnt_points; /* So we can calc the new mean */
-    struct new_coords *new_coords; /* So we can add up coord and calc new mean */
+    struct coord *new_coords; /* So we can add up coord and calc new mean */
 };
 
 void print_point(struct data_points *point);
@@ -40,15 +40,17 @@ struct data_points* init_datapoints();
 
 struct centroids* init_centroids(int K, struct data_points* data_point);
 
-void assign_to_clusters();
+int euclid_dist(struct coord* data_point1, struct coord* data_point2);
+
+void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K);
+
+void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points);
 
 void update_centroids();
 
 int convergence();
 
-int euclid_dist(struct coord data_point1, struct coord vetor2);
-
-void run_kmenas();
+void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int iter);
 
 void reset_centroids();
 
@@ -206,12 +208,68 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     return head_centroid;
 }
 
+int euclid_dist(struct coord* data_point1, struct coord* data_point2){
+    /* Calculate the euclidean distance between 2 points */
+    /* Just to end the error TODO*/
+    printf("%f%f", data_point1->value, data_point2->value );
+    return 0;
+}
+
+void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K){
+    /* Assign a point to the closest cluster */
+    struct centroids *curr_centroid, *min_cent;
+    struct coord *cent_new_coord, *curr_pt_coord;
+    int min_dist;
+    int i;
+    int dist;
+    curr_centroid = head_centroid;
+    /* Find the closest centroid to the point. */
+    for (i = 0; i < K; i++){
+        dist = euclid_dist(point->coords, curr_centroid->coords);
+        if (dist <= min_dist){
+            min_dist = dist;
+            min_cent = curr_centroid;
+        }
+        curr_centroid = curr_centroid->next_centroid;
+    }
+    /* update field in point. */
+    point->centroid = min_cent;
+    /* Update fields in centroid (min_cent).
+        add 1 to the cnt_points
+        add the values of the point to the */
+    min_cent->cnt_points +=1;
+    curr_pt_coord = point->coords;
+    cent_new_coord = min_cent->new_coords;
+    while (curr_pt_coord != NULL){
+        cent_new_coord->value += curr_pt_coord->value;
+        curr_pt_coord = curr_pt_coord->next_coord;
+        cent_new_coord = cent_new_coord->next_coord;
+    }
+}
+
+void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points){
+    /* Assign each point to a cluster (centroid) */
+    struct data_points *curr_point;    
+    int i;
+    curr_point = head_point;
+    for (i = 0; i < num_points; i++){
+        assign_to_cluster(curr_point, head_centroid, K);
+        curr_point = curr_point->next_point;
+    }    
+}
+/*
+void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int iter){
+    int eps = 0.001; 
+
+}*/
+
 int main(int argc, char **argv){    
     struct data_points *head_point;
     struct centroids *head_centroid;
     int points_cnt;
     int K;
     int iter;
+    
 
     printf("Test\n");
     head_point = init_datapoints();
