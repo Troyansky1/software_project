@@ -1,15 +1,16 @@
 # include <stdio.h>
 # include <stdlib.h>
 
+/* Structs should be documented better!*/
 
-/* A value in a data point. next points to the next coordinate. */
+/* A value in a data point. A-cyclyc linked list of coords. */
 struct coord
 {
     double value;
     struct coord *next_coord;
 };
 
-/* A data point with values, linked list of coords. */
+/* A data point with values, cyclyc linked list of points. */
 struct data_points
 {
     struct data_points *next_point;
@@ -18,6 +19,7 @@ struct data_points
     struct centroids *centroid; /*We onlly need the one we point to, not the whole list. */
 };
 
+/* A centroid with values, cyclyc linked list of centroids. */
 struct centroids
 {
     struct centroids *next_centroid;
@@ -178,14 +180,16 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /*TODO: Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
         curr_cent_coord = head_coord;  
-        curr_pt_coord = curr_point->coords;    
+        curr_pt_coord = curr_point->coords;
+        curr_centroid->coords = head_coord;    
         /* Copy each value in the coordinate*/  
         while(curr_pt_coord != NULL){                        
-            curr_cent_coord->value = curr_pt_coord->value;            
+            curr_cent_coord->value = curr_pt_coord->value;     
+            printf(" %f", curr_cent_coord->value);
             curr_pt_coord = curr_pt_coord->next_coord;
             /*TODO: I'm not sure this is the most elegant way to do this */
             if (curr_pt_coord == NULL){
-                curr_cent_coord->next_coord = head_coord;
+                curr_cent_coord->next_coord = NULL;
             }
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
@@ -196,9 +200,8 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             curr_point = curr_point->next_point;
             curr_centroid->next_centroid = malloc(sizeof(struct centroids));
             curr_centroid = curr_centroid->next_centroid;
-        }
-    }
-    print_centroid(curr_centroid);
+        }   
+    }    
     curr_centroid->next_centroid = head_centroid;
     return head_centroid;
 }
@@ -221,12 +224,12 @@ int main(int argc, char **argv){
     if (argc != 3 || K == -1 || iter == -1){
         exit(0);
     }
-    
+
     head_centroid = init_centroids(K, head_point);
     
     printf("The number of points is %d\n", points_cnt);
     print_point(head_point); 
-    print_centroid(head_centroid);
+    print_centroid(head_centroid);     
     return 0;
 
 }
