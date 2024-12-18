@@ -242,20 +242,15 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     double min_dist = __INT_MAX__;
     int i;
     double dist;
-    printf("--");
     curr_centroid = head_centroid;
     /* Find the closest centroid to the point. */
-    printf("--");
     for (i = 0; i < K; i++){
-        printf("--");
         dist = euclid_dist(point->coords, curr_centroid->coords);
-        printf("--");
         if (dist < min_dist){
             min_dist = dist;
             min_cent = curr_centroid;
         }
         curr_centroid = curr_centroid->next_centroid;
-        printf("--");
     }
     /* update field in point. */
     point->centroid = min_cent;
@@ -275,34 +270,18 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
 
 void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points){
     /* Assign each point to a cluster (centroid) */
-    struct centroids *curr_centroid, *min_cent;
-    double min_dist = __INT_MAX__;
-    int j;
-    double dist;
-
     struct data_points *curr_point;    
     int i;
     curr_point = head_point;
 
-    curr_centroid = head_centroid;
     /*
     printf("%d\n", K);
     print_centroid(head_centroid);
     print_point(head_point);
     */
-    for (i = 0; i < num_points; i++){    
-        printf("i = %d\n", i); 
-        for (j = 0; j < K; j++){
-            printf("j = %d\n", j); 
-            dist = euclid_dist(curr_point->coords, curr_centroid->coords);
-            if (dist < min_dist){
-                min_dist = dist;
-                min_cent = curr_centroid;
-                print_centroid(min_cent);
-            }
-            curr_centroid = curr_centroid->next_centroid;
-        }   
-        /* assign_to_cluster(curr_point, head_centroid, K); */
+    for (i = 0; i < num_points; i++){  
+        /* This line caueses the fault! without it there is no problem TODO*/  
+        assign_to_cluster(curr_point, head_centroid, K); 
         curr_point = curr_point->next_point;
     }    
 }
