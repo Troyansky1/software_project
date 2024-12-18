@@ -81,6 +81,18 @@ void print_centroid(struct centroids *centroid){
     printf("\n");
 }
 
+int get_num_points(struct data_points* head_point){
+    struct data_points* curr_point;
+    int num_points = 0;
+
+    curr_point = head_point;    
+    while (curr_point->idx != -1){
+        num_points +=1;
+        curr_point = curr_point->next_point;
+    }
+    return num_points;
+}
+
 int get_k(char **argv, int N){
     /* Validates the value of N as received in argv.
     valid values:
@@ -133,7 +145,6 @@ struct data_points* init_datapoints()
     curr_coord->next_coord = NULL;
 
     head_point = malloc(sizeof(struct data_points));
-    head_point->idx = 0;
     curr_point = head_point;
     curr_point->next_point = NULL;
 
@@ -144,9 +155,10 @@ struct data_points* init_datapoints()
         {        
             curr_coord->value = n;
             curr_point->coords = head_coord;
-            curr_point->next_point = malloc(sizeof(struct data_points));
-            curr_point = curr_point->next_point;
             curr_point->idx = rows;
+            curr_point->next_point = malloc(sizeof(struct data_points));            
+            curr_point = curr_point->next_point;   
+            curr_point->idx = -1;         
             curr_point->next_point = NULL;
             head_coord = malloc(sizeof(struct coord));
             curr_coord = head_coord;
@@ -160,10 +172,10 @@ struct data_points* init_datapoints()
         curr_coord = curr_coord->next_coord;
         curr_coord->next_coord = NULL;        
     }
-    curr_point->next_point = head_point;    
+    curr_point = NULL;    
     /* Returning the last point, so we can infer the anount of points.
         A better solution should be found TODO */   
-    return curr_point;
+    return head_point;
 }
 
 struct centroids* init_centroids(int K, struct data_points* data_point){
@@ -188,7 +200,6 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /* Copy each value in the coordinate*/  
         while(curr_pt_coord != NULL){                        
             curr_cent_coord->value = curr_pt_coord->value;     
-            printf(" %f", curr_cent_coord->value);
             curr_pt_coord = curr_pt_coord->next_coord;
             /*TODO: I'm not sure this is the most elegant way to do this */
             if (curr_pt_coord == NULL){
@@ -212,37 +223,39 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
 double euclid_dist(struct coord* data_point1, struct coord* data_point2){
     /* Calculate the euclidean distance between 2 points.
     Assuming they have the same number of coordinates. */
-    int sum;
+    int sum = 0;
     int curr_diff;
     while(data_point1 != NULL && data_point2 != NULL){
-        curr_diff = data_point1 - data_point2;
+        printf("--");
+        curr_diff = (data_point1->value) - (data_point2->value);
         sum += pow(curr_diff, 2);
         data_point1 = data_point1->next_coord;
         data_point2 = data_point2->next_coord;
     }
     return sqrt(sum);
-
-    /* Just to end the error TODO*/
-    printf("%f%f", data_point1->value, data_point2->value );
-    return 0;
 }
 
 void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K){
     /* Assign a point to the closest cluster */
     struct centroids *curr_centroid, *min_cent;
     struct coord *cent_new_coord, *curr_pt_coord;
-    int min_dist;
+    double min_dist = __INT_MAX__;
     int i;
     double dist;
+    printf("--");
     curr_centroid = head_centroid;
     /* Find the closest centroid to the point. */
+    printf("--");
     for (i = 0; i < K; i++){
+        printf("--");
         dist = euclid_dist(point->coords, curr_centroid->coords);
-        if (dist <= min_dist){
+        printf("--");
+        if (dist < min_dist){
             min_dist = dist;
             min_cent = curr_centroid;
         }
         curr_centroid = curr_centroid->next_centroid;
+        printf("--");
     }
     /* update field in point. */
     point->centroid = min_cent;
@@ -257,25 +270,48 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
         curr_pt_coord = curr_pt_coord->next_coord;
         cent_new_coord = cent_new_coord->next_coord;
     }
+    
 }
 
 void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points){
     /* Assign each point to a cluster (centroid) */
+    struct centroids *curr_centroid, *min_cent;
+    double min_dist = __INT_MAX__;
+    int j;
+    double dist;
+
     struct data_points *curr_point;    
     int i;
     curr_point = head_point;
-    for (i = 0; i < num_points; i++){
-        assign_to_cluster(curr_point, head_centroid, K);
+
+    curr_centroid = head_centroid;
+    /*
+    printf("%d\n", K);
+    print_centroid(head_centroid);
+    print_point(head_point);
+    */
+    for (i = 0; i < num_points; i++){    
+        printf("i = %d\n", i); 
+        for (j = 0; j < K; j++){
+            printf("j = %d\n", j); 
+            dist = euclid_dist(curr_point->coords, curr_centroid->coords);
+            if (dist < min_dist){
+                min_dist = dist;
+                min_cent = curr_centroid;
+                print_centroid(min_cent);
+            }
+            curr_centroid = curr_centroid->next_centroid;
+        }   
+        /* assign_to_cluster(curr_point, head_centroid, K); */
         curr_point = curr_point->next_point;
     }    
 }
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
     /* int eps = 0.001; */
-    printf("Iter %d", iter);
+    printf("Iter %d\n", iter);
     /* Iterate iter times TODO*/
     assign_to_clusters(head_point, head_centroid, K, num_points);
-    print_centroid(head_centroid);
 }
 
 int main(int argc, char **argv){    
@@ -284,25 +320,20 @@ int main(int argc, char **argv){
     int points_cnt;
     int K;
     int iter;
-    
 
-    printf("Test\n");
     head_point = init_datapoints();
-    /* Get the number of points N and then get the head point to be the one with idx 0*/
-    points_cnt = head_point->idx +1;
-    head_point = head_point->next_point;
-
+    points_cnt = get_num_points(head_point);
     K = get_k(argv, points_cnt);
     iter = get_iter(argv);
     if (argc != 3 || K == -1 || iter == -1){
         exit(0);
     }
-
     head_centroid = init_centroids(K, head_point);
-    
+    /*
     printf("The number of points is %d\n", points_cnt);
     print_point(head_point); 
     print_centroid(head_centroid);     
+    */
     run_kmeans(head_point, head_centroid, K, iter, points_cnt);
     return 0;
 
