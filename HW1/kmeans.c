@@ -141,10 +141,12 @@ struct data_points* init_datapoints()
     char c;
 
     head_coord = malloc(sizeof(struct coord));
+    assert(head_coord != NULL);
     curr_coord = head_coord;
     curr_coord->next_coord = NULL;
 
     head_point = malloc(sizeof(struct data_points));
+    assert(head_point!= NULL);
     curr_point = head_point;
     curr_point->next_point = NULL;
 
@@ -156,11 +158,13 @@ struct data_points* init_datapoints()
             curr_coord->value = n;
             curr_point->coords = head_coord;
             curr_point->idx = rows;
-            curr_point->next_point = malloc(sizeof(struct data_points));            
+            curr_point->next_point = malloc(sizeof(struct data_points));     
+            assert(curr_point->next_point != NULL);
             curr_point = curr_point->next_point;   
             curr_point->idx = -1;         
             curr_point->next_point = NULL;
             head_coord = malloc(sizeof(struct coord));
+            assert(head_coord != NULL);
             curr_coord = head_coord;
             curr_coord->next_coord = NULL;
             rows ++;
@@ -169,6 +173,7 @@ struct data_points* init_datapoints()
         /* Add another value to same coordinate */
         curr_coord->value = n;
         curr_coord->next_coord = malloc(sizeof(struct coord));
+        assert(curr_coord->next_coord != NULL);
         curr_coord = curr_coord->next_coord;
         curr_coord->next_coord = NULL;        
     }
@@ -187,6 +192,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     int i;
     curr_point = data_point;
     head_centroid = malloc(sizeof(struct centroids));
+    assert(head_centroid != NULL);
     curr_centroid = head_centroid;
     for (i = 0; i < K; i++){
         /* At initiation, there are no points allocated to any centroid, and no need to update the coordinations.*/
@@ -194,6 +200,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         curr_centroid->new_coords = NULL;        
         /*TODO: Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
+        assert(head_coord != NULL);
         curr_cent_coord = head_coord;  
         curr_pt_coord = curr_point->coords;
         curr_centroid->coords = head_coord;    
@@ -207,12 +214,14 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             }
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
+                assert(curr_cent_coord->next_coord != NULL);
                 curr_cent_coord = curr_cent_coord->next_coord;
             }            
         }        
         if (i != K-1){
             curr_point = curr_point->next_point;
             curr_centroid->next_centroid = malloc(sizeof(struct centroids));
+            assert(curr_centroid->next_centroid != NULL);
             curr_centroid = curr_centroid->next_centroid;
         }   
     }    
