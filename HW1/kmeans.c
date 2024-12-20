@@ -38,6 +38,8 @@ struct centroids
 
 int num_points;
 
+int coord_len;
+
 void print_point(struct data_points *point);
 
 void print_centroid(struct centroids *centroid);
@@ -60,7 +62,9 @@ int update_centroids_and_check_covergence();
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
-void free_all(struct data_points* head_point, struct centroids* head_centroid);
+void free_all(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
+
+void count(struct coord* coord);
 
 void print_point(struct data_points *point){
     /* Debug printint of a data point. */
@@ -327,21 +331,22 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     struct coord* prev_head;
     int num_pts;
     double dist;
+    int ret = 1;
     int i = 0;
 
     cent_coords = cents->coords;
     prev_head = prev_coords;
 
-    while (cent_coords->next_coord != NULL)
+    while (i < coord_len)
         {
             prev_coords->next_coord = malloc(sizeof(struct coord));
             prev_coords = prev_coords->next_coord;
-            cent_coords = cent_coords->next_coord;
+            i ++;
         }
 
     prev_coords->next_coord = NULL;
     prev_coords = prev_head;
-    cent_coords = cents->coords;
+    i = 0;
 
     while (i < K)
     {
@@ -366,10 +371,14 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
             cent_coords = cent_coords->next_coord;
             point_coords = point_coords->next_coord;
         }
+
+        cent_coords = cents->coords;
+        prev_coords = prev_head;
+
         dist = euclid_dist(cent_coords, prev_coords);
         if (dist >= eps)
         {
-            return 0;
+            ret = 0;
         }
         cents = cents->next_centroid;
         i ++;
@@ -382,44 +391,72 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         free(prev_coords);
         prev_coords = prev_head;
     }
-    return 1;
+
+    return ret;
 }
 
-void free_all(struct data_points* head_point, struct centroids* head_centroid)
+void free_all(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
 {
     struct data_points* prev_point = head_point;
     struct centroids* prev_cent = head_centroid;
+    int j = 0;
+    int i = 0;
 
-    while (head_point != NULL)
+    while (j < N)
     {
         prev_point = head_point->next_point;
         free(head_point);
         head_point = prev_point;
+        j ++;
     }
 
-    while (head_centroid != NULL)
+    while (i < K)
     {
         prev_cent = head_centroid->next_centroid;
         free(head_centroid);
         head_centroid = prev_cent;
+        i ++;
     }
 
 }
 
+void count(struct coord* coord)
+{
+    while (coord != NULL)
+    {
+        coord_len ++;
+        coord = coord->next_coord;
+    }
+}
+
+
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
+    struct coord* curr;
     double eps = 0.001;
     int conv_flag = 0;
     int j = 0;
-    printf("Iter %d\n", iter);
+    int i = 0;
 
     while ((j <= iter) && (conv_flag == 0))
     {
-        printf("here\n");
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
         j ++;
     }
-    /* prints TODO */
+    
+    while (i < K)
+    {
+        curr = head_centroid->coords;
+        while (curr->next_coord != NULL)
+        {
+            printf("%.4f, ", curr->value);
+            curr = curr->next_coord;
+        }
+        printf("%.4f\n", curr->value);
+        head_centroid = head_centroid->next_centroid;
+        i ++;
+    }
+    
 }
 
 int main(int argc, char **argv){    
@@ -430,6 +467,7 @@ int main(int argc, char **argv){
     int iter;
 
     head_point = init_datapoints();
+    count(head_point->coords);
     /*points_cnt = get_num_points(head_point);*/
     /*K = get_k(argv, points_cnt);*/
     K = get_k(argv, num_points);
@@ -443,10 +481,9 @@ int main(int argc, char **argv){
     print_point(head_point); 
     print_centroid(head_centroid);     
     */
-
     /*run_kmeans(head_point, head_centroid, K, iter, points_cnt);*/
     run_kmeans(head_point, head_centroid, K, iter, num_points);
-    free_all(head_point, head_centroid);
+    free_all(head_point, head_centroid, num_points, K);
     return 0;
 
 }
