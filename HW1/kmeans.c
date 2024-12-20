@@ -104,7 +104,7 @@ int get_k(char **argv, int N){
     K = strtol(argv[1], NULL, 10);
     /* Check values */
     if (K <= 1 || K >= N){
-        printf("Invalid number of clusters!");
+        printf("Invalid number of clusters!\n");
         return -1;
     }
     return K;
@@ -188,7 +188,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     /* Initialize centroids with values of the first K data points. */
     struct data_points *curr_point;
     struct centroids *head_centroid, *curr_centroid;
-    struct coord *head_coord, *curr_cent_coord, *curr_pt_coord;
+    struct coord *head_coord, *curr_cent_coord, *curr_pt_coord, *head_new_coords, *curr_new_coords;
     
     int i;
     curr_point = data_point;
@@ -198,8 +198,14 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     for (i = 0; i < K; i++){
         /* At initiation, there are no points allocated to any centroid, and no need to update the coordinations.*/
         curr_centroid->cnt_points = 0;
-        curr_centroid->new_coords = NULL;        
-        /*TODO: Copy value of coords from the first K points to the K centroids. */
+
+        /* Init new coords */
+        head_new_coords = malloc(sizeof(struct coord));
+        assert(head_new_coords != NULL);
+        curr_new_coords = head_new_coords;
+        curr_centroid->new_coords = head_new_coords;
+
+        /*Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
         assert(head_coord != NULL);
         curr_cent_coord = head_coord;  
@@ -209,14 +215,20 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         while(curr_pt_coord != NULL){                        
             curr_cent_coord->value = curr_pt_coord->value;     
             curr_pt_coord = curr_pt_coord->next_coord;
+            curr_new_coords->value = 0;
             /*TODO: I'm not sure this is the most elegant way to do this */
             if (curr_pt_coord == NULL){
                 curr_cent_coord->next_coord = NULL;
+                curr_new_coords->next_coord = NULL;
             }
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
                 assert(curr_cent_coord->next_coord != NULL);
                 curr_cent_coord = curr_cent_coord->next_coord;
+
+                curr_new_coords->next_coord = malloc(sizeof(struct coord));
+                assert(curr_new_coords->next_coord != NULL);
+                curr_new_coords = curr_new_coords->next_coord;
             }            
         }        
         if (i != K-1){
@@ -235,8 +247,7 @@ double euclid_dist(struct coord* data_point1, struct coord* data_point2){
     Assuming they have the same number of coordinates. */
     int sum = 0;
     int curr_diff;
-    while(data_point1 != NULL && data_point2 != NULL){
-        printf("--");
+    while(data_point1 != NULL && data_point2 != NULL){        
         curr_diff = (data_point1->value) - (data_point2->value);
         sum += pow(curr_diff, 2);
         data_point1 = data_point1->next_coord;
@@ -251,6 +262,8 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     struct coord *cent_new_coord, *curr_pt_coord;
     double min_dist = __INT_MAX__;
     int i;
+    int new_coord;
+
     double dist;
     curr_centroid = head_centroid;
     /* Find the closest centroid to the point. */
@@ -271,7 +284,8 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     curr_pt_coord = point->coords;
     cent_new_coord = min_cent->new_coords;
     while (curr_pt_coord != NULL){
-        cent_new_coord->value += curr_pt_coord->value;
+        new_coord = curr_pt_coord->value;
+        cent_new_coord->value += new_coord;
         curr_pt_coord = curr_pt_coord->next_coord;
         cent_new_coord = cent_new_coord->next_coord;
     }
