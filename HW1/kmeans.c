@@ -319,15 +319,15 @@ void assign_to_clusters(struct data_points* head_point, struct centroids* head_c
     }    
 }
 
-int update_centroids_and_check_covergence(struct centroids* cents, double eps)
+int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K)
 {
     struct coord* point_coords;
     struct coord* cent_coords;
     struct coord* prev_coords = malloc(sizeof(struct coord));
     struct coord* prev_head;
-    double mean;
     int num_pts;
     double dist;
+    int i = 0;
 
     cent_coords = cents->coords;
     prev_head = prev_coords;
@@ -343,7 +343,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps)
     prev_coords = prev_head;
     cent_coords = cents->coords;
 
-    while (cents != NULL)
+    while (i < K)
     {
         num_pts = cents->cnt_points;
         cent_coords = cents->coords;
@@ -372,8 +372,10 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps)
             return 0;
         }
         cents = cents->next_centroid;
+        i ++;
     }
     prev_head = prev_coords;
+    
     while (prev_coords != NULL)
     {
         prev_head = prev_head->next_coord;
@@ -407,16 +409,16 @@ void free_all(struct data_points* head_point, struct centroids* head_centroid)
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
     double eps = 0.001;
     int conv_flag = 0;
-    printf("Iter %d\n", iter);
-    /* Iterate iter times TODO*/
     int j = 0;
-    while (j <= iter && conv_flag == 0)
+    printf("Iter %d\n", iter);
+
+    while ((j <= iter) && (conv_flag == 0))
     {
+        printf("here\n");
         assign_to_clusters(head_point, head_centroid, K, num_points);
-        conv_flag = update_centroids_and_check_covergence(head_centroid, eps);
+        conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
         j ++;
     }
-    
     /* prints TODO */
 }
 
