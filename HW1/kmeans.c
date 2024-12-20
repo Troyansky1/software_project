@@ -3,6 +3,12 @@
 # include <math.h>
 #include <assert.h>
 
+#ifdef DEBUG
+#define DPRINT printf("Debug print at %d\n", __LINE__)
+#else
+#define DPRINT {}
+#endif
+
 /* Structs should be documented better!*/
 
 /* A value in a data point. A-cyclyc linked list of coords. */
