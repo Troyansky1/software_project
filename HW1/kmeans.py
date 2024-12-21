@@ -62,7 +62,6 @@ def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
         all_coords = np.array(cent_to_dots_map[i])
         a = len(all_coords)
-        print(a)
         centroids[i] = np.mean(all_coords, axis=0)
 
 def clear(cent_to_dots_map):
@@ -84,8 +83,6 @@ def euclid_dist(vector1, vector2):
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
     centroids, datapoints = init_datapoints(K, filename)
-    print_centroids(centroids)
-    print("\n")
     cent_to_dots_map = {}
     for i in range(len(centroids)):
         cent_to_dots_map[i] = []
@@ -102,9 +99,7 @@ def run_kmeans(K, filename, iter=200):
         update_centroids(centroids, cent_to_dots_map)
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
-        print_centroids(centroids)
-        print("\n")
-    #print_centroids(centroids)
+    print_centroids(centroids)
 
 cont = True
 if (len(sys.argv) == 4):
