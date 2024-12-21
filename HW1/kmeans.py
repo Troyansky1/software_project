@@ -9,6 +9,13 @@ import sys
 # cent_to_dots_map - dictionary where keys are indexes of centroids and values are lists of vectors assigned to that centroid
 # dot_to_cent_map - dictionary where keys are indexes of points and values are the centroid vector that dot is assigned to
 
+def print_centroids(centroids):
+    for cent in centroids:
+        exp = ""
+        for c in cent:
+            exp += '{:.4f}'.format(c) + ","
+        print(exp[:-1])
+        
 
 def validate_input(K, iter, filename):
     try:
@@ -91,14 +98,9 @@ def run_kmeans(K, filename, iter=200):
         update_centroids(centroids, cent_to_dots_map, datapoints)
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
-
-    for cent in centroids:
-        exp = ""
-        for c in cent:
-            exp += '{:.4f}'.format(c) + ","
-        exp[::-1]
-        print(exp)
-
+        print_centroids(centroids)
+        print("\n")
+    #print_centroids(centroids)
 
 cont = True
 if (len(sys.argv) == 4):
