@@ -385,14 +385,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         i ++;
     }
     prev_head = prev_coords;
-    
-    while (prev_coords != NULL)
-    {
-        prev_head = prev_head->next_coord;
-        free(prev_coords);
-        prev_coords = prev_head;
-    }
-
+    free_coords(prev_head);
     return ret;
 }
 
