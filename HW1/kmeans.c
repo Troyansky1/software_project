@@ -103,17 +103,6 @@ void print_centroids(struct centroids *head_centroid, int K){
     }
 }
 
-int get_num_points(struct data_points* head_point){
-    struct data_points* curr_point;
-    int num_points = 0;
-
-    curr_point = head_point;    
-    while (curr_point->idx != -1){
-        num_points +=1;
-        curr_point = curr_point->next_point;
-    }
-    return num_points;
-}
 
 int get_k(char **argv, int N){
     /* Validates the value of N as received in argv.
@@ -494,20 +483,12 @@ int main(int argc, char **argv){
 
     head_point = init_datapoints();
     count(head_point->coords);
-    /*points_cnt = get_num_points(head_point);*/
-    /*K = get_k(argv, points_cnt);*/
     K = get_k(argv, num_points);
     iter = get_iter(argv);
     if (argc != 3 || K == -1 || iter == -1){
         exit(0);
     }
     head_centroid = init_centroids(K, head_point);
-    /*
-    printf("The number of points is %d\n", points_cnt);
-    print_point(head_point); 
-    print_centroid(head_centroid);     
-    */
-    /*run_kmeans(head_point, head_centroid, K, iter, points_cnt);*/
     run_kmeans(head_point, head_centroid, K, iter, num_points);
     free_mem(head_point, head_centroid, num_points, K);
     return 0;
