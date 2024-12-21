@@ -254,8 +254,8 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
 double euclid_dist(struct coord* data_point1, struct coord* data_point2){
     /* Calculate the euclidean distance between 2 points.
     Assuming they have the same number of coordinates. */
-    int sum = 0;
-    int curr_diff;
+    double sum = 0;
+    double curr_diff;
     while(data_point1 != NULL && data_point2 != NULL){        
         curr_diff = (data_point1->value) - (data_point2->value);
         sum += pow(curr_diff, 2);
@@ -344,6 +344,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     for (j = 0; j < K; j++)
     {
         num_pts = cents->cnt_points;
+        printf("num points %d\n", num_pts);
         cents->cnt_points = 0;
         cent_coords = cents->coords;
         /* Save the coordinates to check the convvergance later. */
@@ -362,15 +363,14 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         {   
             /* If num_pts is 0, value must be 0 as well and does not need to be updated!*/
             if (num_pts > 0){
+                printf("point_coords->value : %.4f\n", point_coords->value);
                 cent_coords->value = (point_coords->value)/num_pts;
             }        
             point_coords->value = 0.0;
             cent_coords = cent_coords->next_coord;
             point_coords = point_coords->next_coord;
         }
-
         cent_coords = cents->coords;
-        prev_coords = prev_head;
 
         dist = euclid_dist(cent_coords, prev_coords);
         if (dist >= eps)
@@ -472,6 +472,7 @@ int main(int argc, char **argv){
 
     head_point = init_datapoints();
     count(head_point->coords);
+    printf("num points = %d\n", num_points);
     K = get_k(argv, num_points);
     iter = get_iter(argv);
     if (argc != 3 || K == -1 || iter == -1){

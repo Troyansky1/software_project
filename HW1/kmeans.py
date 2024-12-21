@@ -61,6 +61,8 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
 def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
         all_coords = np.array(cent_to_dots_map[i])
+        a = len(all_coords)
+        print(a)
         centroids[i] = np.mean(all_coords, axis=0)
 
 def clear(cent_to_dots_map):
