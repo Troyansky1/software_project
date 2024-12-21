@@ -58,7 +58,7 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     cent_to_dots_map[min_cent].append(vec_xi)
     dot_to_cent_map[i] = centroids[min_cent]
 
-def update_centroids(centroids, cent_to_dots_map, datapoints):
+def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
         all_coords = np.array(cent_to_dots_map[i])
         centroids[i] = np.mean(all_coords, axis=0)
@@ -95,7 +95,7 @@ def run_kmeans(K, filename, iter=200):
         clear(cent_to_dots_map)
         for i, vec_xi in enumerate(datapoints):
             assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map)
-        update_centroids(centroids, cent_to_dots_map, datapoints)
+        update_centroids(centroids, cent_to_dots_map)
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
         print_centroids(centroids)
