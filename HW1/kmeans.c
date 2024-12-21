@@ -356,6 +356,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     while (i < K)
     {
         num_pts = cents->cnt_points;
+        cents->cnt_points = 0;
         cent_coords = cents->coords;
 
         while (cent_coords != NULL)
@@ -442,6 +443,7 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
 
     while ((i <= iter) && (conv_flag == 0))
     {
+        print_centroids(head_centroid, K);
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
         i ++;
