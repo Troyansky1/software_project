@@ -283,7 +283,7 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     /* Find the closest centroid to the point. */
     for (i = 0; i < K; i++){
         dist = euclid_dist(point->coords, curr_centroid->coords);
-        if (dist < min_dist){
+        if (dist <= min_dist){
             min_dist = dist;
             min_cent = curr_centroid;
         }
@@ -293,7 +293,7 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     point->centroid = min_cent;
     /* Update fields in centroid (min_cent).
         add 1 to the cnt_points
-        add the values of the point to the */
+        add the values of the point to the new coords field in the centroid */
     min_cent->cnt_points +=1;
     curr_pt_coord = point->coords;
     cent_new_coord = min_cent->new_coords;
@@ -333,6 +333,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     double dist;
     int ret = 1;
     int i = 0;
+    int j = 0;
 
     cent_coords = cents->coords;
     prev_head = prev_coords;
@@ -346,14 +347,13 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
 
     prev_coords->next_coord = NULL;
     prev_coords = prev_head;
-    i = 0;
 
-    while (i < K)
+    while (j < K)
     {
         num_pts = cents->cnt_points;
         cents->cnt_points = 0;
         cent_coords = cents->coords;
-
+        /* Save the coordinates to check the convvergance later. */
         while (cent_coords != NULL)
         {
             prev_coords->value = cent_coords->value;
@@ -364,10 +364,13 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         cent_coords = cents->coords;
         point_coords = cents->new_coords;
         prev_coords = prev_head;
-
+        /* Iterate over each coordinate and update its value as the mean of the points in its cluster.*/
         while (cent_coords != NULL)
-        {
-            cent_coords->value = (point_coords->value)/num_pts;
+        {   
+            /* If num_pts is 0, value must be 0 as well and does not need to be updated!*/
+            if (num_pts > 0){
+                cent_coords->value = (point_coords->value)/num_pts;
+            }        
             point_coords->value = 0.0;
             cent_coords = cent_coords->next_coord;
             point_coords = point_coords->next_coord;
@@ -382,7 +385,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
             ret = 0;
         }
         cents = cents->next_centroid;
-        i ++;
+        j ++;
     }
     prev_head = prev_coords;
     free_coords(prev_head);
