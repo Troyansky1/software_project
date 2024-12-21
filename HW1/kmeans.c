@@ -42,7 +42,7 @@ int coord_len;
 
 void print_point(struct data_points *point);
 
-void print_centroid(struct centroids *centroid);
+void print_centroids(struct centroids *head_centroid, int K);
 
 int get_k(char **argv, int N);
 
@@ -79,17 +79,22 @@ void print_point(struct data_points *point){
     printf("\n");
 }
 
-void print_centroid(struct centroids *centroid){
-    /* Debug printint of a centroid. */
-    struct coord *coord;
-    coord = centroid->coords;
-    printf("Num of points in centroid is %d\n", centroid->cnt_points);
-    printf("Printing centroid values:\n");    
-    while (coord != NULL){
-        printf("%f ",coord->value);
-        coord = coord->next_coord;
+void print_centroids(struct centroids *head_centroid, int K){
+    struct coord* curr;
+    int i = 0;
+
+      while (i < K)
+    {
+        curr = head_centroid->coords;
+        while (curr->next_coord != NULL)
+        {
+            printf("%.4f, ", curr->value);
+            curr = curr->next_coord;
+        }
+        printf("%.4f\n", curr->value);
+        head_centroid = head_centroid->next_centroid;
+        i ++;
     }
-    printf("\n");
 }
 
 int get_num_points(struct data_points* head_point){
@@ -431,31 +436,18 @@ void count(struct coord* coord)
 
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
-    struct coord* curr;
     double eps = 0.001;
     int conv_flag = 0;
-    int j = 0;
     int i = 0;
 
-    while ((j <= iter) && (conv_flag == 0))
+    while ((i <= iter) && (conv_flag == 0))
     {
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
-        j ++;
-    }
-    
-    while (i < K)
-    {
-        curr = head_centroid->coords;
-        while (curr->next_coord != NULL)
-        {
-            printf("%.4f, ", curr->value);
-            curr = curr->next_coord;
-        }
-        printf("%.4f\n", curr->value);
-        head_centroid = head_centroid->next_centroid;
         i ++;
     }
+    print_centroids(head_centroid, K);
+
     
 }
 
