@@ -58,11 +58,17 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
 
 void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points);
 
-int update_centroids_and_check_covergence();
+int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K);
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
-void free_all(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
+void free_coords(struct coord* head_coord);
+
+void free_points(struct data_points* head_point, int N);
+
+void free_centroids(struct centroids* head_centroid, int K);
+
+void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
 
 void count(struct coord* coord);
 
@@ -401,28 +407,54 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     return ret;
 }
 
-void free_all(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
+void free_coords(struct coord* head_coord)
 {
-    struct data_points* prev_point = head_point;
-    struct centroids* prev_cent = head_centroid;
-    int j = 0;
-    int i = 0;
-
-    while (j < N)
+    struct coord *curr_coord, *next_coord;
+    curr_coord = head_coord;
+    while (curr_coord != NULL)
     {
-        prev_point = head_point->next_point;
-        free(head_point);
-        head_point = prev_point;
-        j ++;
+        next_coord = curr_coord->next_coord;
+        free(curr_coord);
+        curr_coord = next_coord;
     }
+}
 
-    while (i < K)
+void free_points(struct data_points* head_point, int N)
+{
+    struct data_points *curr_point, *next_point;
+    int i = 0;
+    curr_point = head_point;
+    while (i < N)
     {
-        prev_cent = head_centroid->next_centroid;
-        free(head_centroid);
-        head_centroid = prev_cent;
+        next_point = curr_point->next_point;
+        free_coords(curr_point->coords);
+        free(curr_point);    
+        curr_point = next_point;    
         i ++;
     }
+}
+
+void free_centroids(struct centroids* head_centroid, int K)
+{
+    struct centroids *curr_cent, *next_cent;
+    int i = 0;
+    curr_cent = head_centroid;
+    while (i < K)
+    {
+        next_cent = curr_cent->next_centroid;
+        free_coords(curr_cent->coords);
+        free_coords(curr_cent->new_coords);
+        free(curr_cent);   
+        curr_cent = next_cent;     
+        i ++;
+    }
+
+}
+
+void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
+{
+    free_points(head_point, N);
+    free_centroids(head_centroid, K);
 
 }
 
@@ -477,7 +509,7 @@ int main(int argc, char **argv){
     */
     /*run_kmeans(head_point, head_centroid, K, iter, points_cnt);*/
     run_kmeans(head_point, head_centroid, K, iter, num_points);
-    free_all(head_point, head_centroid, num_points, K);
+    free_mem(head_point, head_centroid, num_points, K);
     return 0;
 
 }
