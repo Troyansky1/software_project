@@ -147,7 +147,6 @@ struct data_points* init_datapoints()
     struct coord *head_coord, *curr_coord;
     struct data_points *head_point, *curr_point ;
     
-    int rows = 0;
     double n;
     char c;
     int cnt = 0;
@@ -169,7 +168,7 @@ struct data_points* init_datapoints()
         {        
             curr_coord->value = n;
             curr_point->coords = head_coord;
-            curr_point->idx = rows;
+            curr_point->idx = cnt;
             curr_point->next_point = malloc(sizeof(struct data_points));     
             assert(curr_point->next_point != NULL);
             curr_point = curr_point->next_point;   
@@ -179,7 +178,6 @@ struct data_points* init_datapoints()
             assert(head_coord != NULL);
             curr_coord = head_coord;
             curr_coord->next_coord = NULL;
-            rows ++;
             cnt ++;
             continue;
         }
@@ -192,9 +190,6 @@ struct data_points* init_datapoints()
     }
     curr_point = NULL;  
     num_points = cnt;  
-    /* Returning the last point, so we can infer the anount of points.
-        A better solution should be found TODO */   
-    /* ^ solved maybe? */
     return head_point;
 }
 
@@ -332,23 +327,21 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     int num_pts;
     double dist;
     int ret = 1;
-    int i = 0;
-    int j = 0;
+    int i;
+    int j;
 
     cent_coords = cents->coords;
     prev_head = prev_coords;
 
-    while (i < coord_len)
-        {
-            prev_coords->next_coord = malloc(sizeof(struct coord));
-            prev_coords = prev_coords->next_coord;
-            i ++;
-        }
+    for (i = 0; i < coord_len; i++){
+        prev_coords->next_coord = malloc(sizeof(struct coord));
+        prev_coords = prev_coords->next_coord;
+    }
 
     prev_coords->next_coord = NULL;
     prev_coords = prev_head;
 
-    while (j < K)
+    for (j = 0; j < K; j++)
     {
         num_pts = cents->cnt_points;
         cents->cnt_points = 0;
@@ -384,8 +377,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         {
             ret = 0;
         }
-        cents = cents->next_centroid;
-        j ++;
+        cents = cents->next_centroid;        
     }
     prev_head = prev_coords;
     free_coords(prev_head);
@@ -461,6 +453,7 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
     while ((i <= iter) && (conv_flag == 0))
     {
         print_centroids(head_centroid, K);
+        printf("\n");
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
         i ++;

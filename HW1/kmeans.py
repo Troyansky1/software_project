@@ -82,6 +82,8 @@ def euclid_dist(vector1, vector2):
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
     centroids, datapoints = init_datapoints(K, filename)
+    print_centroids(centroids)
+    print("\n")
     cent_to_dots_map = {}
     for i in range(len(centroids)):
         cent_to_dots_map[i] = []
