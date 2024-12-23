@@ -112,17 +112,28 @@ int get_k(char **argv, int N){
     1 < K < N, K is a natural number.
     */
     long K;
+    double K_d;
     char *endptr;
     if (argv[1] == NULL) {
         printf("Invalid number of clusters!\n");
         return -1;
     }
-    K = strtol(argv[1], &endptr, 10);
+    K_d = strtod(argv[1], &endptr);
     /* Check if strtol failed- K not a natural number */
     if (*endptr != '\0') {
         printf("Invalid number of clusters!\n");
         return -1;
     }
+
+    /* Check if the value is a whole number */
+    if (K_d != (long)K_d) {
+        printf("Invalid number of clusters!\n");
+        return -1;
+    }
+
+    /* Convert to long for range checking */
+    K = (long)K_d;
+
     /* Check values */
     if (K <= 1 || K >= N){
         printf("Invalid number of clusters!\n");
@@ -138,6 +149,7 @@ int get_iter(char **argv, int argc){
     1 < iter < 1000, iter is a natural number.
     */
     long iter;
+    double iter_d;
     char *endptr;
     /* If the number of iterations is not specified, return the default value. */
     if (argc <= 2)
@@ -145,13 +157,22 @@ int get_iter(char **argv, int argc){
         return ITERNUM;
     }
 
-    iter = strtol(argv[2], &endptr, 10); 
+    iter_d = strtod(argv[2], &endptr); 
     /* Check for conversion errors */
     if (*endptr != '\0') {
         printf("Invalid maximum iteration!");
         return -1;
     }
     
+    /* Check if the value is a whole number */
+    if (iter_d != (long)iter_d) {
+        printf("Invalid maximum iteration!");
+        return -1;
+    }
+
+    /* Convert to long for range checking */
+    iter = (long)iter_d;
+
     /* Check values */
     if (iter <= 1 || iter >= 1000){
         printf("Invalid maximum iteration!");
@@ -521,18 +542,18 @@ int main(int argc, char **argv){
 
     head_point = init_datapoints();
     if (head_point == NULL){
-        exit(0);
+        return 1;
     }
     count(head_point->coords);
     K = get_k(argv, num_points);
     iter = get_iter(argv, argc);
     if (argc > 3 || argc < 2 || K == -1 || iter == -1){
-        exit(0);
+        return 1;
     }
     head_centroid = init_centroids(K, head_point);
     if (head_centroid == NULL){
         free_points(head_point, num_points);
-        exit(0);
+        return 1;
     }
     run_kmeans(head_point, head_centroid, K, iter, num_points);
     free_mem(head_point, head_centroid, num_points, K);
