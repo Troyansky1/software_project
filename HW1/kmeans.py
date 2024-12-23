@@ -20,13 +20,11 @@ def print_centroids(centroids):
 def validate_input(K, iter, filename):
     try:
         f = open(filename, "r")
-        line_count = sum(1 for _ in f)
-        #TODO floor without no
-        if (K < 1 or K > line_count or np.floor(K) != K):
+        line_count = sum(1 for _ in f)        
+        if (K < 1 or K > line_count or K != int(K)):
             print("Invalid number of clusters!")
-            return False
-        #TODO floor without no
-        if (iter < 1 or iter > 1000 or np.floor(iter) != iter):
+            return False        
+        if (iter < 1 or iter > 1000 or iter != int(iter)):
             print("Invalid maximum Iteration!")
             return False
         f.close()
