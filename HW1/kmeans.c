@@ -1,7 +1,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <math.h>
-#include <assert.h>
 
 #ifdef DEBUG
 #define DPRINT printf("Debug print at %d\n", __LINE__)
@@ -195,7 +194,7 @@ struct data_points* init_datapoints()
 
     head_coord = malloc(sizeof(struct coord));
     if (head_coord == NULL) {
-        fprintf(stderr, "Memory allocation failed for head_coord\n");
+        fprintf(stderr, "An error has accured\n");
         return NULL; 
     }
     curr_coord = head_coord;
@@ -203,7 +202,7 @@ struct data_points* init_datapoints()
 
     head_point = malloc(sizeof(struct data_points));
     if (head_point == NULL) {
-        fprintf(stderr, "Memory allocation failed for head_point\n");
+        fprintf(stderr, "An error has accured\n");
         free(head_coord); 
         return NULL; 
     }
@@ -220,7 +219,7 @@ struct data_points* init_datapoints()
             curr_point->idx = cnt;
             curr_point->next_point = malloc(sizeof(struct data_points));     
             if (curr_point->next_point == NULL) {
-                fprintf(stderr, "Memory allocation failed for point\n");
+                fprintf(stderr, "An error has accured\n");
                 free_points(head_point, cnt); 
                 return NULL; 
             }
@@ -229,7 +228,7 @@ struct data_points* init_datapoints()
             curr_point->next_point = NULL;
             head_coord = malloc(sizeof(struct coord));
             if (head_coord == NULL) {
-                fprintf(stderr, "Memory allocation failed for head_coord\n");
+                fprintf(stderr, "An error has accured\n");
                 free_points(head_point, cnt); 
                 return NULL; 
             }
@@ -242,7 +241,7 @@ struct data_points* init_datapoints()
         curr_coord->value = n;
         curr_coord->next_coord = malloc(sizeof(struct coord));
         if (curr_coord->next_coord == NULL) {
-            fprintf(stderr, "Memory allocation failed for coord\n");
+            fprintf(stderr, "An error has accured\n");
             free_points(head_point, cnt); 
             return NULL; 
         }
@@ -264,7 +263,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     curr_point = data_point;
     head_centroid = malloc(sizeof(struct centroids));
     if (head_centroid == NULL) {
-        fprintf(stderr, "Memory allocation failed for head_centroid\n");
+        fprintf(stderr, "An error has accured\n");
         free_centroids(head_centroid, 1);         
         return NULL;
     }
@@ -276,7 +275,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /* Init new coords */
         head_new_coords = malloc(sizeof(struct coord));
         if (head_new_coords == NULL) {
-            fprintf(stderr, "Memory allocation failed for head_coord\n");
+            fprintf(stderr, "An error has accured\n");
             free_centroids(head_centroid, i); 
             return NULL;
         }
@@ -286,7 +285,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /*Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
         if (head_coord == NULL) {
-            fprintf(stderr, "Memory allocation failed for head_coord\n");            
+            fprintf(stderr, "An error has accured\n");            
             free_centroids(head_centroid, i); 
             return NULL;
         }
@@ -305,7 +304,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
                 if (curr_cent_coord->next_coord == NULL) {
-                    fprintf(stderr, "Memory allocation failed for coord\n");
+                    fprintf(stderr, "An error has accured\n");
                     free_centroids(head_centroid, i); 
                     return NULL; 
                 }
@@ -313,7 +312,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
 
                 curr_new_coord->next_coord = malloc(sizeof(struct coord));
                 if (curr_new_coord->next_coord == NULL) {
-                    fprintf(stderr, "Memory allocation failed for coord\n");
+                    fprintf(stderr, "An error has accured\n");
                     free_centroids(head_centroid, i); 
                     return NULL; 
                 }
@@ -324,7 +323,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             curr_point = curr_point->next_point;
             curr_centroid->next_centroid = malloc(sizeof(struct centroids));
             if (head_centroid == NULL) {
-                fprintf(stderr, "Memory allocation failed for centroid\n");
+                fprintf(stderr, "An error has accured\n");
                 free_centroids(head_centroid, i);         
                 return NULL;
             }
