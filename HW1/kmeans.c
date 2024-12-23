@@ -112,14 +112,23 @@ int get_k(char **argv, int N){
     1 < K < N, K is a natural number.
     */
     long K;
-    /* TODO: Handle exceptions */
-    K = strtol(argv[1], NULL, 10);
+    char *endptr;
+    if (argv[1] == NULL) {
+        printf("Invalid number of clusters!\n");
+        return -1;
+    }
+    K = strtol(argv[1], &endptr, 10);
+    /* Check if strtol failed */
+    if (*endptr != '\0') {
+        printf("Invalid number of clusters!\n");
+        return -1;
+    }
     /* Check values */
     if (K <= 1 || K >= N){
         printf("Invalid number of clusters!\n");
         return -1;
     }
-    return K;
+    return (int)K;
 }
 
 
