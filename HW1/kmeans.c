@@ -148,6 +148,7 @@ int get_iter(char **argv, int argc){
 }
 
 
+
 struct data_points* init_datapoints()
 {
     /* Initialization- code taken from lecture notes. */
@@ -159,12 +160,19 @@ struct data_points* init_datapoints()
     int cnt = 0;
 
     head_coord = malloc(sizeof(struct coord));
-    assert(head_coord != NULL);
+    if (head_coord == NULL) {
+        fprintf(stderr, "Memory allocation failed for head_coord\n");
+        return NULL; 
+    }
     curr_coord = head_coord;
     curr_coord->next_coord = NULL;
 
     head_point = malloc(sizeof(struct data_points));
-    assert(head_point!= NULL);
+    if (head_point == NULL) {
+        fprintf(stderr, "Memory allocation failed for head_point\n");
+        free(head_coord); 
+        return NULL; 
+    }
     curr_point = head_point;
     curr_point->next_point = NULL;
 
@@ -177,12 +185,20 @@ struct data_points* init_datapoints()
             curr_point->coords = head_coord;
             curr_point->idx = cnt;
             curr_point->next_point = malloc(sizeof(struct data_points));     
-            assert(curr_point->next_point != NULL);
+            if (curr_point->next_point == NULL) {
+                fprintf(stderr, "Memory allocation failed for point\n");
+                free_points(head_point, cnt); 
+                return NULL; 
+            }
             curr_point = curr_point->next_point;   
             curr_point->idx = -1;         
             curr_point->next_point = NULL;
             head_coord = malloc(sizeof(struct coord));
-            assert(head_coord != NULL);
+            if (head_coord == NULL) {
+                fprintf(stderr, "Memory allocation failed for head_coord\n");
+                free_points(head_point, cnt); 
+                return NULL; 
+            }
             curr_coord = head_coord;
             curr_coord->next_coord = NULL;
             cnt ++;
@@ -191,7 +207,11 @@ struct data_points* init_datapoints()
         /* Add another value to same coordinate */
         curr_coord->value = n;
         curr_coord->next_coord = malloc(sizeof(struct coord));
-        assert(curr_coord->next_coord != NULL);
+        if (curr_coord->next_coord == NULL) {
+            fprintf(stderr, "Memory allocation failed for coord\n");
+            free_points(head_point, cnt); 
+            return NULL; 
+        }
         curr_coord = curr_coord->next_coord;
         curr_coord->next_coord = NULL;        
     }
@@ -204,12 +224,16 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     /* Initialize centroids with values of the first K data points. */
     struct data_points *curr_point;
     struct centroids *head_centroid, *curr_centroid;
-    struct coord *head_coord, *curr_cent_coord, *curr_pt_coord, *head_new_coords, *curr_new_coords;
+    struct coord *head_coord, *curr_cent_coord, *curr_pt_coord, *head_new_coords, *curr_new_coord;
     
     int i;
     curr_point = data_point;
     head_centroid = malloc(sizeof(struct centroids));
-    assert(head_centroid != NULL);
+    if (head_centroid == NULL) {
+        fprintf(stderr, "Memory allocation failed for head_centroid\n");
+        free_centroids(head_centroid, 1);         
+        return NULL;
+    }
     curr_centroid = head_centroid;
     for (i = 0; i < K; i++){
         /* At initiation, there are no points allocated to any centroid, and no need to update the coordinations.*/
@@ -217,13 +241,21 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
 
         /* Init new coords */
         head_new_coords = malloc(sizeof(struct coord));
-        assert(head_new_coords != NULL);
-        curr_new_coords = head_new_coords;
+        if (head_new_coords == NULL) {
+            fprintf(stderr, "Memory allocation failed for head_coord\n");
+            free_centroids(head_centroid, i); 
+            return NULL;
+        }
+        curr_new_coord = head_new_coords;
         curr_centroid->new_coords = head_new_coords;
 
         /*Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
-        assert(head_coord != NULL);
+        if (head_coord == NULL) {
+            fprintf(stderr, "Memory allocation failed for head_coord\n");            
+            free_centroids(head_centroid, i); 
+            return NULL;
+        }
         curr_cent_coord = head_coord;  
         curr_pt_coord = curr_point->coords;
         curr_centroid->coords = head_coord;    
@@ -231,26 +263,38 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         while(curr_pt_coord != NULL){                        
             curr_cent_coord->value = curr_pt_coord->value;     
             curr_pt_coord = curr_pt_coord->next_coord;
-            curr_new_coords->value = 0.0;
+            curr_new_coord->value = 0.0;
             /*TODO: I'm not sure this is the most elegant way to do this */
             if (curr_pt_coord == NULL){
                 curr_cent_coord->next_coord = NULL;
-                curr_new_coords->next_coord = NULL;
+                curr_new_coord->next_coord = NULL;
             }
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
-                assert(curr_cent_coord->next_coord != NULL);
+                if (curr_cent_coord->next_coord == NULL) {
+                    fprintf(stderr, "Memory allocation failed for coord\n");
+                    free_centroids(head_centroid, i); 
+                    return NULL; 
+                }
                 curr_cent_coord = curr_cent_coord->next_coord;
 
-                curr_new_coords->next_coord = malloc(sizeof(struct coord));
-                assert(curr_new_coords->next_coord != NULL);
-                curr_new_coords = curr_new_coords->next_coord;
+                curr_new_coord->next_coord = malloc(sizeof(struct coord));
+                if (curr_new_coord->next_coord == NULL) {
+                    fprintf(stderr, "Memory allocation failed for coord\n");
+                    free_centroids(head_centroid, i); 
+                    return NULL; 
+                }
+                curr_new_coord = curr_new_coord->next_coord;
             }            
         }        
         if (i != K-1){
             curr_point = curr_point->next_point;
             curr_centroid->next_centroid = malloc(sizeof(struct centroids));
-            assert(curr_centroid->next_centroid != NULL);
+            if (head_centroid == NULL) {
+                fprintf(stderr, "Memory allocation failed for centroid\n");
+                free_centroids(head_centroid, i);         
+                return NULL;
+            }
             curr_centroid = curr_centroid->next_centroid;
         }   
     }    
@@ -479,6 +523,9 @@ int main(int argc, char **argv){
     int iter;
 
     head_point = init_datapoints();
+    if (head_point == NULL){
+        exit(0);
+    }
     count(head_point->coords);
     /*printf("num points = %d\n", num_points);*/
     K = get_k(argv, num_points);
@@ -487,6 +534,10 @@ int main(int argc, char **argv){
         exit(0);
     }
     head_centroid = init_centroids(K, head_point);
+    if (head_centroid == NULL){
+        free_points(head_point, num_points);
+        exit(0);
+    }
     run_kmeans(head_point, head_centroid, K, iter, num_points);
     free_mem(head_point, head_centroid, num_points, K);
     return 0;
