@@ -118,7 +118,7 @@ int get_k(char **argv, int N){
         return -1;
     }
     K = strtol(argv[1], &endptr, 10);
-    /* Check if strtol failed */
+    /* Check if strtol failed- K not a natural number */
     if (*endptr != '\0') {
         printf("Invalid number of clusters!\n");
         return -1;
@@ -138,14 +138,19 @@ int get_iter(char **argv, int argc){
     1 < iter < 1000, iter is a natural number.
     */
     long iter;
-    /* Handle exceptions */
-    /* If the number f iterations is not specified. */
-    if (argc == 2)
+    char *endptr;
+    /* If the number of iterations is not specified, return the default value. */
+    if (argc <= 2)
     {
         return ITERNUM;
     }
 
-    iter = strtol(argv[2], NULL, 10); 
+    iter = strtol(argv[2], &endptr, 10); 
+    /* Check for conversion errors */
+    if (*endptr != '\0') {
+        printf("Invalid maximum iteration!");
+        return -1;
+    }
     
     /* Check values */
     if (iter <= 1 || iter >= 1000){
@@ -153,7 +158,7 @@ int get_iter(char **argv, int argc){
         return -1;
     }
     
-    return iter;
+    return (int)iter;
 }
 
 
@@ -273,7 +278,6 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             curr_cent_coord->value = curr_pt_coord->value;     
             curr_pt_coord = curr_pt_coord->next_coord;
             curr_new_coord->value = 0.0;
-            /*TODO: I'm not sure this is the most elegant way to do this */
             if (curr_pt_coord == NULL){
                 curr_cent_coord->next_coord = NULL;
                 curr_new_coord->next_coord = NULL;
