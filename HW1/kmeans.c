@@ -371,11 +371,6 @@ void assign_to_clusters(struct data_points* head_point, struct centroids* head_c
     int i;
     curr_point = head_point;
 
-    /*
-    printf("%d\n", K);
-    print_centroid(head_centroid);
-    print_point(head_point);
-    */
     for (i = 0; i < num_points; i++){  
         assign_to_cluster(curr_point, head_centroid, K); 
         curr_point = curr_point->next_point;
@@ -408,7 +403,6 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     for (j = 0; j < K; j++)
     {
         num_pts = cents->cnt_points;
-        /*printf("num points %d\n", num_pts);*/
         cents->cnt_points = 0.0;
         cent_coords = cents->coords;
         /* Save the coordinates to check the convvergance later. */
@@ -427,7 +421,6 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         {   
             /* If num_pts is 0, value must be 0 as well and does not need to be updated!*/
             if (num_pts > 0){
-                /*printf("point_coords->value : %.4f\n", point_coords->value);*/
                 cent_coords->value = (point_coords->value)/num_pts;
             }        
             point_coords->value = 0.0;
@@ -515,10 +508,6 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
 
     while ((i <= iter) && (conv_flag == 0))
     {
-        /*
-        print_centroids(head_centroid, K);
-        printf("\n");
-        */
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);
         i ++;
@@ -540,7 +529,6 @@ int main(int argc, char **argv){
         exit(0);
     }
     count(head_point->coords);
-    /*printf("num points = %d\n", num_points);*/
     K = get_k(argv, num_points);
     iter = get_iter(argv, argc);
     if (argc > 3 || argc < 2 || K == -1 || iter == -1){
