@@ -10,6 +10,7 @@
 #endif
 
 #define ITERNUM 200
+#define EPS 0.001
 
 /* Structs should be documented better!*/
 
@@ -452,7 +453,6 @@ void count(struct coord* coord)
 
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
-    double eps = 0.001;
     int conv_flag = 0;
     int i = 0;
 
@@ -463,7 +463,7 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
         printf("\n");
         */
         assign_to_clusters(head_point, head_centroid, K, num_points);
-        conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K);
+        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);
         i ++;
     }
     print_centroids(head_centroid, K);
