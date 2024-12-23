@@ -96,7 +96,7 @@ void print_centroids(struct centroids *head_centroid, int K){
         curr = head_centroid->coords;
         while (curr->next_coord != NULL)
         {
-            printf("%.4f, ", curr->value);
+            printf("%.4f,", curr->value);
             curr = curr->next_coord;
         }
         printf("%.4f\n", curr->value);
@@ -156,8 +156,7 @@ int get_iter(char **argv, int argc){
     if (iter <= 1 || iter >= 1000){
         printf("Invalid maximum iteration!");
         return -1;
-    }
-    
+    }   
     return (int)iter;
 }
 
@@ -362,7 +361,6 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
         curr_pt_coord = curr_pt_coord->next_coord;
         cent_new_coord = cent_new_coord->next_coord;
     }
-    
 }
 
 void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points){
@@ -482,7 +480,6 @@ void free_centroids(struct centroids* head_centroid, int K)
         curr_cent = next_cent;     
         i ++;
     }
-
 }
 
 void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
@@ -513,8 +510,6 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
         i ++;
     }
     print_centroids(head_centroid, K);
-
-    
 }
 
 int main(int argc, char **argv){    
