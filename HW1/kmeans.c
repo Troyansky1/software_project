@@ -9,6 +9,8 @@
 #define DPRINT {}
 #endif
 
+#define ITERNUM 200
+
 /* Structs should be documented better!*/
 
 /* A value in a data point. A-cyclyc linked list of coords. */
@@ -127,10 +129,10 @@ int get_iter(char **argv, int argc){
     */
     long iter;
     /* Handle exceptions */
-
+    /* If the number f iterations is not specified. */
     if (argc == 2)
     {
-        return 200;
+        return ITERNUM;
     }
 
     iter = strtol(argv[2], NULL, 10); 
@@ -140,7 +142,6 @@ int get_iter(char **argv, int argc){
         printf("Invalid maximum iteration!");
         return -1;
     }
-    /*printf("iter = %ld\n", iter);    */
     
     return iter;
 }
