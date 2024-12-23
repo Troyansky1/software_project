@@ -21,9 +21,11 @@ def validate_input(K, iter, filename):
     try:
         f = open(filename, "r")
         line_count = sum(1 for _ in f)
+        #TODO floor without no
         if (K < 1 or K > line_count or np.floor(K) != K):
             print("Invalid number of clusters!")
             return False
+        #TODO floor without no
         if (iter < 1 or iter > 1000 or np.floor(iter) != iter):
             print("Invalid maximum Iteration!")
             return False
@@ -62,6 +64,7 @@ def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
         all_coords = np.array(cent_to_dots_map[i])
         a = len(all_coords)
+        #TODO mean without no
         centroids[i] = np.mean(all_coords, axis=0)
 
 def clear(cent_to_dots_map):
@@ -78,6 +81,7 @@ def convergence(centroids, prev, eps):
 def euclid_dist(vector1, vector2):
     point1 = np.array(vector1)
     point2 = np.array(vector2)
+    #TODO norm without no
     return np.linalg.norm(point1 - point2)
 
 def run_kmeans(K, filename, iter=200):
