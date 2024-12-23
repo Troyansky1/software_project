@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import numpy as np
+import math
 import sys
 
 # each centroid and point is represented by its index in list centroids and datapoints respectively
@@ -58,12 +58,23 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     cent_to_dots_map[min_cent].append(vec_xi)
     dot_to_cent_map[i] = centroids[min_cent]
 
+def calc_mean(centroid):
+    num_points = len(centroid)
+    num_coords = len(centroid[0])
+    coords_sum = [0] * num_coords
+
+    for coord in centroid:
+        for i in range(num_coords):
+            coords_sum[i] += coord[i]
+
+    # Calculate the mean for each dimension
+    centroid = [coords_sum[i] / num_points for i in range(num_coords)]
+
+    return centroid
+
 def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
-        all_coords = np.array(cent_to_dots_map[i])
-        a = len(all_coords)
-        #TODO mean without no
-        centroids[i] = np.mean(all_coords, axis=0)
+        centroids[i] = calc_mean(cent_to_dots_map[i])
 
 def clear(cent_to_dots_map):
     for key in cent_to_dots_map:
@@ -77,10 +88,10 @@ def convergence(centroids, prev, eps):
     return True
 
 def euclid_dist(vector1, vector2):
-    point1 = np.array(vector1)
-    point2 = np.array(vector2)
-    #TODO norm without no
-    return np.linalg.norm(point1 - point2)
+    squared_differences = [(v1 - v2) ** 2 for v1, v2 in zip(vector1, vector2)]
+    sum_of_squares = sum(squared_differences)
+    norm = math.sqrt(sum_of_squares)
+    return norm
 
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
