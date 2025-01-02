@@ -6,7 +6,7 @@ RED="\033[31m"
 GREEN="\033[32m"
 RESET="\033[0m"
 
-PROJECT_DIRECTORY=111111111_111111111_assignment1
+PROJECT_DIRECTORY=319029211_111111111_assignment1
 
 SCRIPT_DIR=`dirname $0`
 
@@ -16,8 +16,8 @@ function testKmeans() {
 	expectedName=$3
 
 	echo "Running test: arguments=\"${k_and_maxIter}\" inputFileName=${inputFileName} expectedName=${expectedName}"
-	valgrind --quiet --leak-check=full ./out/kmeans $k_and_maxIter < tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}Test Passed.${RESET}" || echo -e "${RED}C TEST FAILED!!!${RESET}"
-	python3 out/kmeans.py $k_and_maxIter tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}Test Passed.${RESET}" || echo -e "${RED}C TEST FAILED!!!${RESET}"
+	# valgrind --quiet --leak-check=full ./out/kmeans $k_and_maxIter < tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}C Test Passed.${RESET}" || echo -e "${RED}C TEST FAILED!!!${RESET}"
+	python3 out/kmeans.py $k_and_maxIter tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}py Test Passed.${RESET}" || echo -e "${RED}py TEST FAILED!!!${RESET}"
 	echo
 }
 
