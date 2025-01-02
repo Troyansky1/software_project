@@ -21,7 +21,7 @@ def validate_input(K, iter, filename):
     try:
         f = open(filename, "r")
         line_count = sum(1 for _ in f)        
-        if (K < 1 or K > line_count or K != int(K)):
+        if (K < 1 or K >= line_count or K != int(K)):
             print("Invalid number of clusters!")
             return False        
         if (iter < 1 or iter > 1000 or iter != int(iter)):
