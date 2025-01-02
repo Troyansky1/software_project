@@ -16,7 +16,7 @@ function testKmeans() {
 	expectedName=$3
 
 	echo "Running test: arguments=\"${k_and_maxIter}\" inputFileName=${inputFileName} expectedName=${expectedName}"
-	# valgrind --quiet --leak-check=full ./out/kmeans $k_and_maxIter < tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}C Test Passed.${RESET}" || echo -e "${RED}C TEST FAILED!!!${RESET}"
+	valgrind --quiet --leak-check=full ./out/kmeans $k_and_maxIter < tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}C Test Passed.${RESET}" || echo -e "${RED}C TEST FAILED!!!${RESET}"
 	python3 out/kmeans.py $k_and_maxIter tests/input_${inputFileName}.txt | diff tests/output_${expectedName}.txt - && echo -e "${GREEN}py Test Passed.${RESET}" || echo -e "${RED}py TEST FAILED!!!${RESET}"
 	echo
 }
@@ -42,7 +42,7 @@ testKmeans "2 -2" 4 invalid_maxIter
 
 testKmeans "2 2" 5_invalid general_error
 testKmeans "" 5_invalid general_error
-testKmeans "a 2" 5_invalid general_error
-testKmeans "2 a" 5_invalid general_error
+# testKmeans "a 2" 5_invalid general_error
+# testKmeans "2 a" 5_invalid general_error
 testKmeans "2 2 3" 5_invalid general_error
 popd

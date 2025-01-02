@@ -21,11 +21,11 @@ def validate_input(K, iter, filename):
     try:
         f = open(filename, "r")
         line_count = sum(1 for _ in f)        
-        if (K < 1 or K >= line_count or K != int(K)):
+        if (K <= 1 or K >= line_count or K != int(K)):
             print("Invalid number of clusters!")
             return False        
-        if (iter < 1 or iter > 1000 or iter != int(iter)):
-            print("Invalid maximum Iteration!")
+        if (iter <= 1 or iter >= 1000 or iter != int(iter)):
+            print("Invalid maximum iteration!")
             return False
         f.close()
         return True
@@ -40,7 +40,11 @@ def init_datapoints(K, filename):
     i = 0
     with open(filename) as my_file:
         for line in my_file:
-            coords = [float(x) for x in line.strip().split(",")]
+            try:
+                coords = [float(x) for x in line.strip().split(",")]
+            except:
+                print("An Error Has Occurred")
+                return None, None
             if (i < K):
                 centroids.append(coords)
                 i += 1
@@ -96,6 +100,9 @@ def euclid_dist(vector1, vector2):
 def run_kmeans(K, filename, iter=200):
     eps = 0.001
     centroids, datapoints = init_datapoints(K, filename)
+    if (centroids == None or datapoints == None):
+        return
+    
     cent_to_dots_map = {}
     for i in range(len(centroids)):
         cent_to_dots_map[i] = []
@@ -121,7 +128,7 @@ elif (len(sys.argv) == 3):
     K, filename = sys.argv[1:]
     iter = 200
 else:
-    print("An Error Has Occured")
+    print("An Error Has Occurred")
     cont = False
 
 if (cont):
