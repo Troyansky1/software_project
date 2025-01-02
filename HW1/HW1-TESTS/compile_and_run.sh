@@ -6,7 +6,7 @@ RED="\033[31m"
 GREEN="\033[32m"
 RESET="\033[0m"
 
-PROJECT_DIRECTORY=319029211_111111111_assignment1
+PROJECT_DIRECTORY=319029211_322641929_assignment1
 
 SCRIPT_DIR=`dirname $0`
 
@@ -42,7 +42,6 @@ testKmeans "2 -2" 4 invalid_maxIter
 
 testKmeans "2 2" 5_invalid general_error
 testKmeans "" 5_invalid general_error
-# testKmeans "a 2" 5_invalid general_error
-# testKmeans "2 a" 5_invalid general_error
+#testKmeans "a 2" 5_invalid general_error
+#testKmeans "2 a" 5_invalid general_error
 testKmeans "2 2 3" 5_invalid general_error
-popd

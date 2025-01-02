@@ -26,7 +26,7 @@ struct data_points
     struct data_points *next_point;
     struct coord *coords;
     int idx;
-    struct centroids *centroid; /*We onlly need the one we point to, not the whole list. */
+    struct centroids *centroid; /*We only need the one we point to, not the whole list. */
 };
 
 /* A centroid with values, cyclyc linked list of centroids. */
@@ -114,7 +114,7 @@ int get_k(char **argv, int N){
     double K_d;
     char *endptr;
     if (argv[1] == NULL) {
-        printf("Invalid number of clusters!\n");
+        printf("An Error Has Occurred\n");
         return -1;
     }
     K_d = strtod(argv[1], &endptr);
@@ -159,13 +159,13 @@ int get_iter(char **argv, int argc){
     iter_d = strtod(argv[2], &endptr); 
     /* Check for conversion errors */
     if (*endptr != '\0') {
-        printf("Invalid maximum iteration!");
+        printf("Invalid maximum iteration!\n");
         return -1;
     }
     
     /* Check if the value is a whole number */
     if (iter_d != (long)iter_d) {
-        printf("Invalid maximum iteration!");
+        printf("Invalid maximum iteration!\n");
         return -1;
     }
 
@@ -174,7 +174,7 @@ int get_iter(char **argv, int argc){
 
     /* Check values */
     if (iter <= 1 || iter >= 1000){
-        printf("Invalid maximum iteration!");
+        printf("Invalid maximum iteration!\n");
         return -1;
     }   
     return (int)iter;
@@ -194,7 +194,7 @@ struct data_points* init_datapoints()
 
     head_coord = malloc(sizeof(struct coord));
     if (head_coord == NULL) {
-        fprintf(stderr, "An error has accured\n");
+        printf("An Error Has Occurred\n");
         return NULL; 
     }
     curr_coord = head_coord;
@@ -202,15 +202,16 @@ struct data_points* init_datapoints()
 
     head_point = malloc(sizeof(struct data_points));
     if (head_point == NULL) {
-        fprintf(stderr, "An error has accured\n");
+        printf("An Error Has Occurred\n");
         free(head_coord); 
         return NULL; 
     }
+    head_point->idx = -1;
     curr_point = head_point;
     curr_point->next_point = NULL;
 
     while (scanf("%lf%c", &n, &c) == 2)
-    {        
+    {    
         /* last value in the coordinate- Files end with an empty line. */
         if (c == '\n')
         {        
@@ -219,7 +220,7 @@ struct data_points* init_datapoints()
             curr_point->idx = cnt;
             curr_point->next_point = malloc(sizeof(struct data_points));     
             if (curr_point->next_point == NULL) {
-                fprintf(stderr, "An error has accured\n");
+                printf("An Error Has Occurred\n");
                 free_points(head_point, cnt); 
                 return NULL; 
             }
@@ -228,7 +229,7 @@ struct data_points* init_datapoints()
             curr_point->next_point = NULL;
             head_coord = malloc(sizeof(struct coord));
             if (head_coord == NULL) {
-                fprintf(stderr, "An error has accured\n");
+                printf("An Error Has Occurred\n");
                 free_points(head_point, cnt); 
                 return NULL; 
             }
@@ -241,15 +242,19 @@ struct data_points* init_datapoints()
         curr_coord->value = n;
         curr_coord->next_coord = malloc(sizeof(struct coord));
         if (curr_coord->next_coord == NULL) {
-            fprintf(stderr, "An error has accured\n");
+            printf("An Error Has Occurred\n");
             free_points(head_point, cnt); 
             return NULL; 
         }
         curr_coord = curr_coord->next_coord;
         curr_coord->next_coord = NULL;        
     }
-    curr_point = NULL;  
-    num_points = cnt;  
+    free_coords(head_coord);
+    free(curr_point);
+    num_points = cnt;
+    if (cnt == 0)  {
+        return NULL;
+    }
     return head_point;
 }
 
@@ -263,7 +268,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
     curr_point = data_point;
     head_centroid = malloc(sizeof(struct centroids));
     if (head_centroid == NULL) {
-        fprintf(stderr, "An error has accured\n");
+        printf("An Error Has Occurred\n");
         free_centroids(head_centroid, 1);         
         return NULL;
     }
@@ -275,7 +280,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /* Init new coords */
         head_new_coords = malloc(sizeof(struct coord));
         if (head_new_coords == NULL) {
-            fprintf(stderr, "An error has accured\n");
+            printf("An Error Has Occurred\n");
             free_centroids(head_centroid, i); 
             return NULL;
         }
@@ -285,7 +290,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
         /*Copy value of coords from the first K points to the K centroids. */
         head_coord = malloc(sizeof(struct coord));
         if (head_coord == NULL) {
-            fprintf(stderr, "An error has accured\n");            
+            printf("An Error Has Occurred\n");            
             free_centroids(head_centroid, i); 
             return NULL;
         }
@@ -304,7 +309,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             else{
                 curr_cent_coord->next_coord = malloc(sizeof(struct coord));
                 if (curr_cent_coord->next_coord == NULL) {
-                    fprintf(stderr, "An error has accured\n");
+                    printf("An Error Has Occurred\n");
                     free_centroids(head_centroid, i); 
                     return NULL; 
                 }
@@ -312,7 +317,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
 
                 curr_new_coord->next_coord = malloc(sizeof(struct coord));
                 if (curr_new_coord->next_coord == NULL) {
-                    fprintf(stderr, "An error has accured\n");
+                    printf("An Error Has Occurred\n");
                     free_centroids(head_centroid, i); 
                     return NULL; 
                 }
@@ -323,7 +328,7 @@ struct centroids* init_centroids(int K, struct data_points* data_point){
             curr_point = curr_point->next_point;
             curr_centroid->next_centroid = malloc(sizeof(struct centroids));
             if (head_centroid == NULL) {
-                fprintf(stderr, "An error has accured\n");
+                printf("An Error Has Occurred\n");
                 free_centroids(head_centroid, i);         
                 return NULL;
             }
@@ -523,10 +528,10 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
     int conv_flag = 0;
     int i = 0;
 
-    while ((i <= iter) && (conv_flag == 0))
+    while ((i < iter) && (conv_flag == 0))
     {
         assign_to_clusters(head_point, head_centroid, K, num_points);
-        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);
+        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);        
         i ++;
     }
     print_centroids(head_centroid, K);
@@ -541,12 +546,23 @@ int main(int argc, char **argv){
 
     head_point = init_datapoints();
     if (head_point == NULL){
+        printf("An Error Has Occurred\n");
+        return 1;
+    }
+    else if (head_point->idx == -1){
+        printf("An Error Has Occurred\n");
         return 1;
     }
     count(head_point->coords);
+    if (num_points == 0) {
+        free_points(head_point, num_points);
+        printf("An Error Has Occurred\n");
+        return 1;
+    }
     K = get_k(argv, num_points);
     iter = get_iter(argv, argc);
     if (argc > 3 || argc < 2 || K == -1 || iter == -1){
+        free_points(head_point, num_points);
         return 1;
     }
     head_centroid = init_centroids(K, head_point);
@@ -554,6 +570,7 @@ int main(int argc, char **argv){
         free_points(head_point, num_points);
         return 1;
     }
+    
     run_kmeans(head_point, head_centroid, K, iter, num_points);
     free_mem(head_point, head_centroid, num_points, K);
     return 0;
