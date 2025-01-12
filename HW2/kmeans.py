@@ -4,6 +4,7 @@ import math
 import sys
 import numpy as np
 import pandas as pd
+import mykmeans as mk
 
 # each centroid and point is represented by its index in list centroids and datapoints respectively
 # every vector is a list of coordinates

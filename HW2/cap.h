@@ -25,6 +25,8 @@ struct centroids
     struct coord *new_coords; /* So we can add up coord and calc new mean */
 };
 
-double main(int argc, char **argv);
+int main(int argc, char **argv);
+
+void print_centroids(struct centroids *head_centroid, int K);
 
 # endif
