@@ -20,25 +20,20 @@ def print_centroids(centroids):
         print(exp[:-1])
         
 
-def validate_input(K, iter, filename):
-    try:
-        f = open(filename, "r")
-        line_count = sum(1 for _ in f)        
-        if (K <= 1 or K >= line_count or K != int(K)):
-            print("Invalid number of clusters!")
-            return False        
-        if (iter <= 1 or iter >= 1000 or iter != int(iter)):
-            print("Invalid maximum iteration!")
-            return False
-        f.close()
-        return True
-    except IOError: 
-        print("An Error Has Occurred")
-        return False
+def validate_input(K, iter, N):
+    if (K <= 1 or K >= N or K != int(K)):
+        print("Invalid number of clusters!")
+        return False        
+    if (iter <= 1 or iter >= 1000 or iter != int(iter)):
+        print("Invalid maximum iteration!")
+        return False    
+    return True
 
-def init_centroids(datapoints, K):
+
+def init_centroids(data_points, K):
     # each row is a centroid, each column is index of coordinate
-    centroids = datapoints.iloc[:K, ].copy()
+    data_points = data_points.reset_index(drop=True)
+    centroids = data_points.iloc[:K].copy()
     return centroids
 
 
@@ -88,12 +83,8 @@ def euclid_dist(vector1, vector2):
     norm = math.sqrt(sum_of_squares)
     return norm
 
-def run_kmeans(K, filename, eps, iter=200):
-    datapoints = init_datapoints(K, filename)
-    centroids = init_centroids(datapoints, K)
-    
-    if (centroids == None or datapoints == None):
-        return
+def run_kmeans(K, data_points, eps, iter=200):
+
     
     cent_to_dots_map = {}
     for i in range(len(centroids)):
@@ -106,33 +97,42 @@ def run_kmeans(K, filename, eps, iter=200):
         for cent in centroids:
             prev.append(cent.copy())
         clear(cent_to_dots_map)
-        for i, vec_xi in enumerate(datapoints):
+        for i, vec_xi in enumerate(data_points):
             assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map)
         update_centroids(centroids, cent_to_dots_map)
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
     print_centroids(centroids)
 
-    
-run_kmeans(3, "/home/developer/software_project-1/HW2/input_1.txt", 0.001, 600)
+def fit(args):    
+    if (len(args) == 5):
+        K, eps, filename1, filename2 = args[1:]
+        iter = 300
+    elif (len(args) == 6):
+        K, iter, eps, filename1, filename2 = args[1:]
+        iter = int(iter, base=10)
+    else:
+        print("An Error Has Occurred")
+        return
+    K = int(K, base=10)
+    eps = float(eps)
+    print(f"Filename: {filename1}")
+    dps1 = pd.read_csv(filename1, header=None)
+    dps2 = pd.read_csv(filename2, header=None)
+    data_points = pd.merge(dps1, dps2, how='inner', on=0)
+    data_points = data_points.sort_values(by=0,ascending=True)
+    N = len(data_points)
+    # print(data_points.sort_values(by=0,ascending=True))
+    # print(data_points.head(K))
+    # print(data_points.info())
+    centroids = init_centroids(data_points, K)
+    #if (centroids == None or data_points == None):
+    #    return
+    if (validate_input(K, iter, N)):
+            mk.run_kmeans(data_points, centroids, K, iter, N)
 
-if (len(sys.argv) == 4):
-    K, filename1, filename2, eps = sys.argv[1:]
-    iter = 300
-elif (len(sys.argv) == 5):
-    K, iter, filename1, filename2, eps = sys.argv[1:]
-else:
-    print("An Error Has Occurred")
 
-dps1 = pd.read_csv(filename1, header=None)
-dps2 = pd.read_csv(filename2, header=None)
-datapoints = pd.merge(dps1, dps2, how='inner', on='0')
-datapoints.sort_values()
-init_centroids(datapoints, K)
-
-if (validate_input(K, iter, eps)):
-        run_kmeans(K, eps, iter)
-
+fit(sys.argv)
 
 """
 cont = True

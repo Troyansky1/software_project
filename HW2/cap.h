@@ -25,7 +25,7 @@ struct centroids
     struct coord *new_coords; /* So we can add up coord and calc new mean */
 };
 
-int main(int argc, char **argv);
+void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
 void print_centroids(struct centroids *head_centroid, int K);
 
