@@ -84,8 +84,6 @@ def euclid_dist(vector1, vector2):
     return norm
 
 def run_kmeans(K, data_points, eps, iter=200):
-
-    
     cent_to_dots_map = {}
     for i in range(len(centroids)):
         cent_to_dots_map[i] = []
@@ -104,7 +102,7 @@ def run_kmeans(K, data_points, eps, iter=200):
         j = j + 1
     print_centroids(centroids)
 
-def fit(args):    
+def main(args):    
     if (len(args) == 5):
         K, eps, filename1, filename2 = args[1:]
         iter = 300
@@ -116,12 +114,17 @@ def fit(args):
         return
     K = int(K, base=10)
     eps = float(eps)
-    print(f"Filename: {filename1}")
+    print(f"Filename 1: {filename1}, Filename 2:  {filename2}")
     dps1 = pd.read_csv(filename1, header=None)
     dps2 = pd.read_csv(filename2, header=None)
     data_points = pd.merge(dps1, dps2, how='inner', on=0)
+    
     data_points = data_points.sort_values(by=0,ascending=True)
-    N = len(data_points)
+    #Print first line
+    dim = len(data_points.iloc[0]) -1
+    data_points = data_points.iloc[:,1:]
+    N = len(data_points)    
+    print(f"Num points = {N}, The dimension is {dim}, the number of iterations is: {iter}, epsilon = {eps}, K = {K}")
     # print(data_points.sort_values(by=0,ascending=True))
     # print(data_points.head(K))
     # print(data_points.info())
@@ -129,10 +132,11 @@ def fit(args):
     #if (centroids == None or data_points == None):
     #    return
     if (validate_input(K, iter, N)):
-            mk.run_kmeans(data_points, centroids, K, iter, N)
+        cents = mk.fit(centroids, data_points, iter, N, K, dim)
+        #print_centroids(mk.fit(centroids, data_points, iter, N, K, dim))
 
 
-fit(sys.argv)
+main(sys.argv)
 
 """
 cont = True

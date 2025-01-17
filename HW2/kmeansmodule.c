@@ -25,6 +25,20 @@ static PyObject* mykmeanssp(PyObject *self, PyObject *args){
     return GetCentsList(centroids, dim, K);
 }
 
+PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int dim){
+    /* Init data points and centroids in python.
+        calls kmeans.c, which returns the centroids in struct.
+        returns centroids in python.
+    */
+    struct data_points *head_point;
+    struct centroids *head_centroid; 
+    head_point = init_datapoints(dpts, N, dim);
+    head_centroid = init_centroids(cents, K, dim);
+    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N);
+    cents = GetCentsList(head_centroid, dim, K);
+    return cents;
+}
+
 static PyMethodDef kmeansMethods[] = {
     {"mykmeanssp",                   
       (PyCFunction) mykmeanssp,
@@ -71,16 +85,3 @@ PyMODINIT_FUNC PyInit_mykmeans(void)
     return m;
 }
 
-static PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int dim){
-    /* Init data points and centroids in python.
-        calls kmeans.c, which returns the centroids in struct.
-        returns centroids in python.
-    */
-    struct data_points *head_point;
-    struct centroids *head_centroid; 
-    head_point = init_datapoints(dpts, N, dim);
-    head_centroid = init_centroids(cents, K, dim);
-    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N);
-    cents = GetCentsList(head_centroid, dim, K);
-    return cents;
-}

@@ -1,5 +1,6 @@
 # ifndef CAP_H_
 # define CAP_H_
+# include <Python.h>
 
 struct coord
 {
@@ -33,16 +34,18 @@ void free_centroids(struct centroids* head_centroid, int K);
 
 void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
 
-void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
-static PyObject* GetCoordsList(struct coord *head_coord, int dim);
+PyObject* GetCoordsList(struct coord *head_coord, int dim);
 
-static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K);
+PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K);
 
 struct data_points *init_datapoints(PyObject *dpts, int N, int dim);
 
-static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K);
+struct centroids *init_centroids(PyObject *cents, int K, int dim);
 
 void print_centroids(struct centroids *head_centroid, int K);
+
+PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int dim);
 
 # endif

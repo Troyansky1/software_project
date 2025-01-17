@@ -2,7 +2,7 @@
 # include <Python.h>
 # include "cap.h"
 
-static PyObject* GetCoordsList(struct coord *head_coord, int dim){
+PyObject* GetCoordsList(struct coord *head_coord, int dim){
     /* C struct to  py list */
     double val;
     PyObject* python_coords_list;
@@ -20,7 +20,7 @@ static PyObject* GetCoordsList(struct coord *head_coord, int dim){
 }
 
 
-static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K){
+PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K){
     /* C struct to py list */
     PyObject* coords;
     PyObject* python_centroids_list;
@@ -125,17 +125,8 @@ void free_mem(struct data_points* head_point, struct centroids* head_centroid, i
 {
     free_points(head_point, N);
     free_centroids(head_centroid, K);
-
 }
 
-void count(struct coord* coord)
-{
-    while (coord != NULL)
-    {
-        coord_len ++;
-        coord = coord->next_coord;
-    }
-}
 
 struct centroids *init_centroids(PyObject *cents, int K, int dim){
     /* Py obj to C struct. */
