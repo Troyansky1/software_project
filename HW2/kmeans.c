@@ -13,7 +13,6 @@
 #define EPS 0.001
 
 
-
 int num_points;
 
 int coord_len;
@@ -21,14 +20,6 @@ int coord_len;
 void print_point(struct data_points *point);
 
 void print_centroids(struct centroids *head_centroid, int K);
-
-int get_k(char **argv, int N);
-
-int get_iter(char **argv, int argc);
-
-struct data_points* init_datapoints();
-
-struct centroids* init_centroids(int K, struct data_points* data_point);
 
 double euclid_dist(struct coord* data_point1, struct coord* data_point2);
 
@@ -38,15 +29,9 @@ void assign_to_clusters(struct data_points* head_point, struct centroids* head_c
 
 int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K);
 
-void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
-void free_coords(struct coord* head_coord);
 
-void free_points(struct data_points* head_point, int N);
-
-void free_centroids(struct centroids* head_centroid, int K);
-
-void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
 
 void count(struct coord* coord);
 
@@ -78,82 +63,6 @@ void print_centroids(struct centroids *head_centroid, int K){
         head_centroid = head_centroid->next_centroid;
         i ++;
     }
-}
-
-
-int get_k(char **argv, int N){
-    /* Validates the value of N as received in argv.
-    valid values:
-    1 < K < N, K is a natural number.
-    */
-    long K;
-    double K_d;
-    char *endptr;
-    if (argv[1] == NULL) {
-        printf("An Error Has Occurred\n");
-        return -1;
-    }
-    K_d = strtod(argv[1], &endptr);
-    /* Check if strtol failed- K not a natural number */
-    if (*endptr != '\0') {
-        printf("Invalid number of clusters!\n");
-        return -1;
-    }
-
-    /* Check if the value is a whole number */
-    if (K_d != (long)K_d) {
-        printf("Invalid number of clusters!\n");
-        return -1;
-    }
-
-    /* Convert to long for range checking */
-    K = (long)K_d;
-
-    /* Check values */
-    if (K <= 1 || K >= N){
-        printf("Invalid number of clusters!\n");
-        return -1;
-    }
-    return (int)K;
-}
-
-
-int get_iter(char **argv, int argc){
-    /* Validates the value of iter as received in argv.
-    valid values:
-    1 < iter < 1000, iter is a natural number.
-    */
-    long iter;
-    double iter_d;
-    char *endptr;
-    /* If the number of iterations is not specified, return the default value. */
-    if (argc <= 2)
-    {
-        return ITERNUM;
-    }
-
-    iter_d = strtod(argv[2], &endptr); 
-    /* Check for conversion errors */
-    if (*endptr != '\0') {
-        printf("Invalid maximum iteration!\n");
-        return -1;
-    }
-    
-    /* Check if the value is a whole number */
-    if (iter_d != (long)iter_d) {
-        printf("Invalid maximum iteration!\n");
-        return -1;
-    }
-
-    /* Convert to long for range checking */
-    iter = (long)iter_d;
-
-    /* Check values */
-    if (iter <= 1 || iter >= 1000){
-        printf("Invalid maximum iteration!\n");
-        return -1;
-    }   
-    return (int)iter;
 }
 
 
@@ -225,6 +134,8 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     struct coord* cent_coords;
     struct coord* prev_coords = malloc(sizeof(struct coord));
     struct coord* prev_head;
+    /* Of free coords*/
+    struct coord *curr_coord, *next_coord;
     int num_pts;
     double dist;
     int ret = 1;
@@ -279,71 +190,19 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         cents = cents->next_centroid;        
     }
     prev_head = prev_coords;
-    free_coords(prev_head);
-    return ret;
-}
-
-void free_coords(struct coord* head_coord)
-{
-    struct coord *curr_coord, *next_coord;
-    curr_coord = head_coord;
+    
+    /* Free coords*/
+    curr_coord = prev_head;
     while (curr_coord != NULL)
     {
         next_coord = curr_coord->next_coord;
         free(curr_coord);
         curr_coord = next_coord;
     }
+    return ret;
 }
 
-void free_points(struct data_points* head_point, int N)
-{
-    struct data_points *curr_point, *next_point;
-    int i = 0;
-    curr_point = head_point;
-    while (i < N)
-    {
-        next_point = curr_point->next_point;
-        free_coords(curr_point->coords);
-        free(curr_point);    
-        curr_point = next_point;    
-        i ++;
-    }
-}
-
-void free_centroids(struct centroids* head_centroid, int K)
-{
-    struct centroids *curr_cent, *next_cent;
-    int i = 0;
-    curr_cent = head_centroid;
-    while (i < K)
-    {
-        next_cent = curr_cent->next_centroid;
-        free_coords(curr_cent->coords);
-        free_coords(curr_cent->new_coords);
-        free(curr_cent);   
-        curr_cent = next_cent;     
-        i ++;
-    }
-}
-
-void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
-{
-    free_points(head_point, N);
-    free_centroids(head_centroid, K);
-
-}
-
-void count(struct coord* coord)
-{
-    while (coord != NULL)
-    {
-        coord_len ++;
-        coord = coord->next_coord;
-    }
-}
-
-
-void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
     int conv_flag = 0;
     int i = 0;
 
@@ -353,7 +212,7 @@ void run_kmeans(struct data_points* head_point, struct centroids* head_centroid,
         conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);        
         i ++;
     }
-    print_centroids(head_centroid, K);
+    return head_centroid;
 }
 
 int main(int argc, char **argv){    
@@ -391,7 +250,6 @@ int main(int argc, char **argv){
     }
     
     run_kmeans(head_point, head_centroid, K, iter, num_points);
-    free_mem(head_point, head_centroid, num_points, K);
     return 0;
 
 }

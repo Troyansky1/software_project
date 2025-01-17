@@ -25,6 +25,14 @@ struct centroids
     struct coord *new_coords; /* So we can add up coord and calc new mean */
 };
 
+void free_coords(struct coord* head_coord);
+
+void free_points(struct data_points* head_point, int N);
+
+void free_centroids(struct centroids* head_centroid, int K);
+
+void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
+
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
 static PyObject* GetCoordsList(struct coord *head_coord, int dim);

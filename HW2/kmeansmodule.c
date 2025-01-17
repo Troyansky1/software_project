@@ -80,7 +80,7 @@ static PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int
     struct centroids *head_centroid; 
     head_point = init_datapoints(dpts, N, dim);
     head_centroid = init_centroids(cents, K, dim);
-    run_kmeans(head_point, head_centroid, K, iter, N);
-
+    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N);
+    cents = GetCentsList(head_centroid, dim, K);
     return cents;
 }

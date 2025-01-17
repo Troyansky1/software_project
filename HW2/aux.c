@@ -77,6 +77,66 @@ struct data_points *init_datapoints(PyObject *dpts, int N, int dim) {
     return head_point;
 }
 
+
+void free_coords(struct coord* head_coord)
+{
+    struct coord *curr_coord, *next_coord;
+    curr_coord = head_coord;
+    while (curr_coord != NULL)
+    {
+        next_coord = curr_coord->next_coord;
+        free(curr_coord);
+        curr_coord = next_coord;
+    }
+}
+
+void free_points(struct data_points* head_point, int N)
+{
+    struct data_points *curr_point, *next_point;
+    int i = 0;
+    curr_point = head_point;
+    while (i < N)
+    {
+        next_point = curr_point->next_point;
+        free_coords(curr_point->coords);
+        free(curr_point);    
+        curr_point = next_point;    
+        i ++;
+    }
+}
+
+void free_centroids(struct centroids* head_centroid, int K)
+{
+    struct centroids *curr_cent, *next_cent;
+    int i = 0;
+    curr_cent = head_centroid;
+    while (i < K)
+    {
+        next_cent = curr_cent->next_centroid;
+        free_coords(curr_cent->coords);
+        free_coords(curr_cent->new_coords);
+        free(curr_cent);   
+        curr_cent = next_cent;     
+        i ++;
+    }
+}
+
+void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K)
+{
+    free_points(head_point, N);
+    free_centroids(head_centroid, K);
+
+}
+
+void count(struct coord* coord)
+{
+    while (coord != NULL)
+    {
+        coord_len ++;
+        coord = coord->next_coord;
+    }
+}
+
 struct centroids *init_centroids(PyObject *cents, int K, int dim){
     /* Py obj to C struct. */
     PyObject *lst;
