@@ -89,6 +89,7 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     /* Find the closest centroid to the point. */
     for (i = 0; i < K; i++){
         dist = euclid_dist(point->coords, curr_centroid->coords);
+        printf("euc dist\n");
         if (dist <= min_dist){
             min_dist = dist;
             min_cent = curr_centroid;
@@ -116,8 +117,8 @@ void assign_to_clusters(struct data_points* head_point, struct centroids* head_c
     struct data_points *curr_point;    
     int i;
     curr_point = head_point;
-
-    for (i = 0; i < num_points; i++){  
+    printf("%f\n", curr_point->next_point->next_point->coords->value);
+    for (i = 0; i < num_points; i++){          
         assign_to_cluster(curr_point, head_centroid, K); 
         curr_point = curr_point->next_point;
     }    
@@ -203,6 +204,7 @@ struct centroids* run_kmeans(struct data_points* head_point, struct centroids* h
 
     while ((i < iter) && (conv_flag == 0))
     {
+        printf("%d\n", i);
         assign_to_clusters(head_point, head_centroid, K, num_points);
         conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);        
         i ++;

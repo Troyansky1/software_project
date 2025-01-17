@@ -46,6 +46,6 @@ struct centroids *init_centroids(PyObject *cents, int K, int dim);
 
 void print_centroids(struct centroids *head_centroid, int K);
 
-PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int dim);
+
 
 # endif

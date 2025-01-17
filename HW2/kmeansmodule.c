@@ -3,41 +3,70 @@
 # include "cap.h"
 
 
-
 static PyObject* mykmeanssp(PyObject *self, PyObject *args){
     PyObject *cents;
     PyObject *dpts;
     int dim;
     int iter;
+    int N;
 
     if (!PyArg_ParseTuple(args, "OOii", &cents, &dpts, &iter, &dim)){
         return NULL;
     }
 
-    int N = PyObject_Length(dpts);
-    int K = PyObject_Length(cents);
+    N = PyObject_Length(dpts);
+    /* int K = PyObject_Length(cents);*/
 
     /* struct data_points *datapoints = init_datapoints(dpts, N, dim); */
     struct centroids *centroids = init_centroids(cents, N, dim);
-    printf("Centroids as received in C");
-    print_centroids(centroids, K);
-
-    return GetCentsList(centroids, dim, K);
+    if (centroids == NULL){
+      /* printf("Failure in init centroids in C"); */
+      return NULL;
+    }
+    /* printf("Centroids as received in C"); */
+    /* print_centroids(centroids, K); */
+    return self;
+    /* return GetCentsList(centroids, dim, K); */
 }
 
-PyObject* fit(PyObject *cents, PyObject *dpts,int iter, int N, int K, int dim){
+
+static PyObject* fit(PyObject *self, PyObject *args){
     /* Init data points and centroids in python.
         calls kmeans.c, which returns the centroids in struct.
         returns centroids in python.
-    */
+    
     struct data_points *head_point;
-    struct centroids *head_centroid; 
+    head_point = init_datapoints(dpts, N, dim);
+    */
+    PyObject *cents;
+    PyObject *dpts;
+    struct data_points *head_point;
+    struct centroids *head_centroid;
+    int dim;
+    int iter;
+    int N;
+    int K;
+    double eps;
+
+    if (!PyArg_ParseTuple(args, "OOiiiid", &cents, &dpts, &iter, &N, &K, &dim, &eps)){
+        return NULL;
+    }
     head_point = init_datapoints(dpts, N, dim);
     head_centroid = init_centroids(cents, K, dim);
-    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N);
-    cents = GetCentsList(head_centroid, dim, K);
-    return cents;
+    if (head_point == NULL || head_centroid == NULL){
+      printf("Err");
+    }
+    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N); 
+    /* struct data_points *datapoints = init_datapoints(dpts, N, dim);
+    head_centroid = init_centroids(cents, K, dim);
+    if (head_centroid == NULL){
+      return NULL;
+    }
+    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N); 
+    cents = GetCentsList(head_centroid, dim, K);  */
+    return self;
 }
+
 
 static PyMethodDef kmeansMethods[] = {
     {"mykmeanssp",                   
@@ -69,13 +98,13 @@ static PyMethodDef kmeansMethods[] = {
 
 static struct PyModuleDef moduledef = {
     PyModuleDef_HEAD_INIT,
-    "mykmeans",
+    "mykmeanssp",
     NULL,
     -1,  
     kmeansMethods
 };
 
-PyMODINIT_FUNC PyInit_mykmeans(void)
+PyMODINIT_FUNC PyInit_mykmeanssp(void)
 {
     PyObject *m;
     m = PyModule_Create(&moduledef);

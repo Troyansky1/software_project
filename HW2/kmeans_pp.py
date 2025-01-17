@@ -4,7 +4,7 @@ import math
 import sys
 import numpy as np
 import pandas as pd
-import mykmeans as mk
+import mykmeanssp as mk
 
 # each centroid and point is represented by its index in list centroids and datapoints respectively
 # every vector is a list of coordinates
@@ -83,25 +83,6 @@ def euclid_dist(vector1, vector2):
     norm = math.sqrt(sum_of_squares)
     return norm
 
-def run_kmeans(K, data_points, eps, iter=200):
-    cent_to_dots_map = {}
-    for i in range(len(centroids)):
-        cent_to_dots_map[i] = []
-    dot_to_cent_map = {}
-    conv_flag = False
-    j = 0
-    while ((not conv_flag) and (j < iter)):
-        prev = []
-        for cent in centroids:
-            prev.append(cent.copy())
-        clear(cent_to_dots_map)
-        for i, vec_xi in enumerate(data_points):
-            assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map)
-        update_centroids(centroids, cent_to_dots_map)
-        conv_flag = convergence(centroids, prev, eps)
-        j = j + 1
-    print_centroids(centroids)
-
 def main(args):    
     if (len(args) == 5):
         K, eps, filename1, filename2 = args[1:]
@@ -131,8 +112,11 @@ def main(args):
     centroids = init_centroids(data_points, K)
     #if (centroids == None or data_points == None):
     #    return
-    if (validate_input(K, iter, N)):
-        cents = mk.fit(centroids, data_points, iter, N, K, dim)
+    if (validate_input(K, iter, N)):   
+        data_points = data_points.values.tolist()
+        centroids = centroids.values.tolist()  
+        print(centroids)
+        mk.fit(centroids, data_points, iter, N, K, dim, eps)
         #print_centroids(mk.fit(centroids, data_points, iter, N, K, dim))
 
 
