@@ -27,6 +27,14 @@ struct centroids
 
 void run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
 
+static PyObject* GetCoordsList(struct coord *head_coord, int dim);
+
+static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K);
+
+struct data_points *init_datapoints(PyObject *dpts, int N, int dim);
+
+static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K);
+
 void print_centroids(struct centroids *head_centroid, int K);
 
 # endif

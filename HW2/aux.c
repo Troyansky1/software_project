@@ -3,6 +3,7 @@
 # include "cap.h"
 
 static PyObject* GetCoordsList(struct coord *head_coord, int dim){
+    /* C struct to  py list */
     double val;
     PyObject* python_coords_list;
     PyObject* python_val;
@@ -20,6 +21,7 @@ static PyObject* GetCoordsList(struct coord *head_coord, int dim){
 
 
 static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K){
+    /* C struct to py list */
     PyObject* coords;
     PyObject* python_centroids_list;
     PyObject* python_val;
@@ -36,6 +38,7 @@ static PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K){
 }
 
 struct data_points *init_datapoints(PyObject *dpts, int N, int dim) {
+    /* Py obj to C struct. */
     PyObject *lst;
     PyObject *item;
     struct data_points *head_point, *curr_point; 
@@ -75,6 +78,7 @@ struct data_points *init_datapoints(PyObject *dpts, int N, int dim) {
 }
 
 struct centroids *init_centroids(PyObject *cents, int K, int dim){
+    /* Py obj to C struct. */
     PyObject *lst;
     PyObject *item;
     struct centroids *head_centroid, *curr_centroid; 
