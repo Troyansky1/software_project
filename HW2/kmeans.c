@@ -17,39 +17,42 @@ int num_points;
 
 int coord_len;
 
-void print_point(struct data_points *point);
+void print_point(struct data_points *point, int dim);
 
-void print_centroids(struct centroids *head_centroid, int K);
+void print_centroids(struct centroids *head_centroid, int K, int dim);
 
-double euclid_dist(struct coord* data_point1, struct coord* data_point2);
+double euclid_dist(struct coord* data_point1, struct coord* data_point2, int dim);
 
-void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K);
+void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K, int dim);
 
-void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points);
+void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points, int dim);
 
-int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K);
+int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K, int dim);
 
 
-void print_point(struct data_points *point){
+void print_point(struct data_points *point, int dim){
     /* Debug printint of a data point. */
     struct coord *coord;
+    int i;
     coord = point->coords;
     printf("Printing point in index %d\n", point->idx);
     printf("Printing point values:\n");  
-    while (coord != NULL){
+    for (i = 0; i < dim; i++){
         printf("%f ",coord->value);
         coord = coord->next_coord;
     }
     printf("\n");
 }
 
-void print_centroids(struct centroids *head_centroid, int K){
+void print_centroids(struct centroids *head_centroid, int K, int dim){
     struct coord* curr;
     int i = 0;
+    int j;
+    printf("print centroids\n");
       while (i < K)
     {
         curr = head_centroid->coords;
-        while (curr->next_coord != NULL)
+        for (j=0; j < dim -1; j++)
         {
             printf("%.4f,", curr->value);
             curr = curr->next_coord;
@@ -61,12 +64,13 @@ void print_centroids(struct centroids *head_centroid, int K){
 }
 
 
-double euclid_dist(struct coord* data_point1, struct coord* data_point2){
+double euclid_dist(struct coord* data_point1, struct coord* data_point2, int dim){
     /* Calculate the euclidean distance between 2 points.
     Assuming they have the same number of coordinates. */
     double sum = 0;
+    int i;
     double curr_diff;
-    while(data_point1 != NULL && data_point2 != NULL){        
+    for (i = 0; i < dim; i++) {     
         curr_diff = (data_point1->value) - (data_point2->value);
         sum += pow(curr_diff, 2);
         data_point1 = data_point1->next_coord;
@@ -75,12 +79,13 @@ double euclid_dist(struct coord* data_point1, struct coord* data_point2){
     return sqrt(sum);
 }
 
-void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K){
+void assign_to_cluster(struct data_points* point, struct centroids* head_centroid, int K, int dim){
     /* Assign a point to the closest cluster */
     struct centroids *curr_centroid, *min_cent;
     struct coord *cent_new_coord, *curr_pt_coord;
     double min_dist = __INT_MAX__;
     int i;
+    int j;
     double new_coord;
 
     double dist;
@@ -88,43 +93,42 @@ void assign_to_cluster(struct data_points* point, struct centroids* head_centroi
     min_cent = curr_centroid;
     /* Find the closest centroid to the point. */
     for (i = 0; i < K; i++){
-        dist = euclid_dist(point->coords, curr_centroid->coords);
-        printf("euc dist\n");
+        dist = euclid_dist(point->coords, curr_centroid->coords, dim);
+        
         if (dist <= min_dist){
             min_dist = dist;
             min_cent = curr_centroid;
-        }
-        curr_centroid = curr_centroid->next_centroid;
+        }        
+        curr_centroid = curr_centroid->next_centroid;        
     }
-    /* update field in point. */
-    point->centroid = min_cent;
+    /* update field in point. */    
+    point->centroid = min_cent;    
     /* Update fields in centroid (min_cent).
         add 1 to the cnt_points
         add the values of the point to the new coords field in the centroid */
     min_cent->cnt_points += 1.0;
     curr_pt_coord = point->coords;
-    cent_new_coord = min_cent->new_coords;
-    while (curr_pt_coord != NULL){
+    cent_new_coord = min_cent->new_coords;    
+    for (j = 0; j<dim; j++){
         new_coord = curr_pt_coord->value;
-        cent_new_coord->value += new_coord;
+        cent_new_coord->value += new_coord;            
         curr_pt_coord = curr_pt_coord->next_coord;
-        cent_new_coord = cent_new_coord->next_coord;
-    }
+        cent_new_coord = cent_new_coord->next_coord; 
+    } 
 }
 
-void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points){
+void assign_to_clusters(struct data_points* head_point, struct centroids* head_centroid, int K, int num_points, int dim){
     /* Assign each point to a cluster (centroid) */
     struct data_points *curr_point;    
     int i;
     curr_point = head_point;
-    printf("%f\n", curr_point->next_point->next_point->coords->value);
-    for (i = 0; i < num_points; i++){          
-        assign_to_cluster(curr_point, head_centroid, K); 
-        curr_point = curr_point->next_point;
+    for (i = 0; i < num_points; i++){
+        assign_to_cluster(curr_point, head_centroid, K, dim);    
+        curr_point = curr_point->next_point;        
     }    
 }
 
-int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K)
+int update_centroids_and_check_covergence(struct centroids* cents, double eps, int K, int dim)
 {
     struct coord* point_coords;
     struct coord* cent_coords;
@@ -141,7 +145,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     cent_coords = cents->coords;
     prev_head = prev_coords;
 
-    for (i = 0; i < coord_len; i++){
+    for (i = 0; i < dim; i++){
         prev_coords->next_coord = malloc(sizeof(struct coord));
         prev_coords = prev_coords->next_coord;
     }
@@ -155,7 +159,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         cents->cnt_points = 0.0;
         cent_coords = cents->coords;
         /* Save the coordinates to check the convvergance later. */
-        while (cent_coords != NULL)
+        for (i = 0; i < dim; i++)
         {
             prev_coords->value = cent_coords->value;
             prev_coords = prev_coords->next_coord;
@@ -166,7 +170,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         point_coords = cents->new_coords;
         prev_coords = prev_head;
         /* Iterate over each coordinate and update its value as the mean of the points in its cluster.*/
-        while (cent_coords != NULL)
+        for (i = 0; i < dim; i++)
         {   
             /* If num_pts is 0, value must be 0 as well and does not need to be updated!*/
             if (num_pts > 0){
@@ -178,7 +182,7 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
         }
         cent_coords = cents->coords;
 
-        dist = euclid_dist(cent_coords, prev_coords);
+        dist = euclid_dist(cent_coords, prev_coords, dim);
         if (dist >= eps)
         {
             ret = 0;
@@ -198,15 +202,16 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     return ret;
 }
 
-struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points){
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim){
     int conv_flag = 0;
     int i = 0;
-
+    
     while ((i < iter) && (conv_flag == 0))
     {
         printf("%d\n", i);
-        assign_to_clusters(head_point, head_centroid, K, num_points);
-        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K);        
+        assign_to_clusters(head_point, head_centroid, K, num_points, dim);
+        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K, dim);   
+        print_centroids(head_centroid,K, dim);
         i ++;
     }
     return head_centroid;

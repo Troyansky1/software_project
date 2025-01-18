@@ -153,18 +153,17 @@ struct centroids *init_centroids(PyObject *cents, int K, int dim){
     /* Py obj to C struct. */
     PyObject *item, *tmp;
     struct centroids *head_centroid, *curr_centroid, *next_centroid; 
-    struct coord *head_coord, *curr_coord, *curr_new_coord, *next_coord;
+    struct coord *head_coord, *head_new_coord, *curr_coord, *curr_new_coord, *next_coord, *next_new_coord;
     int j;    
     int i;
 
     curr_centroid = malloc(sizeof(struct centroids));
-    head_centroid = curr_centroid;
-
     if (curr_centroid == NULL) {
         printf("Memory allocation failed. Exiting.\n");
         return NULL;
     }
-
+    head_centroid = curr_centroid;
+    
     for (i = 0; i < K; i++) {
         curr_coord = malloc(sizeof(struct coord));
         curr_new_coord = malloc(sizeof(struct coord));
@@ -173,6 +172,7 @@ struct centroids *init_centroids(PyObject *cents, int K, int dim){
             return NULL;
         }
         head_coord = curr_coord;
+        head_new_coord = curr_new_coord;
         for (j = 0; j < dim; j++) {
             tmp = PyList_GetItem(cents, i);
             if (tmp == NULL){
@@ -186,16 +186,27 @@ struct centroids *init_centroids(PyObject *cents, int K, int dim){
             if (PyErr_Occurred()){
                 return NULL;
             }
+
             next_coord = malloc(sizeof(struct coord));
             if (next_coord == NULL) {
                 printf("Memory allocation failed. Exiting.\n");
                 return NULL;
             }   
             curr_coord->next_coord = next_coord; 
-            curr_coord = curr_coord->next_coord;            
+            curr_coord = curr_coord->next_coord;  
+
+            next_new_coord = malloc(sizeof(struct coord));
+            if (next_new_coord == NULL) {
+                printf("Memory allocation failed. Exiting.\n");
+                return NULL;
+            }   
+            curr_new_coord->next_coord = next_new_coord;
+            curr_new_coord = curr_new_coord->next_coord;          
         } 
+        free(curr_coord);
+        free(curr_new_coord);
         curr_centroid->coords = head_coord;
-        curr_centroid->new_coords = curr_new_coord;
+        curr_centroid->new_coords = head_new_coord;
         curr_centroid->cnt_points = 0;
 
         next_centroid = malloc(sizeof(struct centroids));

@@ -34,7 +34,7 @@ void free_centroids(struct centroids* head_centroid, int K);
 
 void free_mem(struct data_points* head_point, struct centroids* head_centroid, int N, int K);
 
-struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points);
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim);
 
 PyObject* GetCoordsList(struct coord *head_coord, int dim);
 
@@ -44,7 +44,7 @@ struct data_points *init_datapoints(PyObject *dpts, int N, int dim);
 
 struct centroids *init_centroids(PyObject *cents, int K, int dim);
 
-void print_centroids(struct centroids *head_centroid, int K);
+void print_centroids(struct centroids *head_centroid, int K, int dim);
 
 
 

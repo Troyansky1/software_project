@@ -56,7 +56,7 @@ static PyObject* fit(PyObject *self, PyObject *args){
     if (head_point == NULL || head_centroid == NULL){
       printf("Err");
     }
-    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N); 
+    head_centroid = run_kmeans(head_point, head_centroid, K, iter, N, dim); 
     /* struct data_points *datapoints = init_datapoints(dpts, N, dim);
     head_centroid = init_centroids(cents, K, dim);
     if (head_centroid == NULL){
