@@ -12,13 +12,16 @@ import mykmeanssp as mk
 # cent_to_dots_map - dictionary where keys are indexes of centroids and values are lists of vectors assigned to that centroid
 # dot_to_cent_map - dictionary where keys are indexes of points and values are the centroid vector that dot is assigned to
 
+np.random.seed(1234)
+
 def print_centroids(centroids):
     for cent in centroids:
         exp = ""
         for c in cent:
             exp += '{:.4f}'.format(c) + ","
         print(exp[:-1])
-        
+    print()
+
 
 def validate_input(K, iter, N):
     if (K <= 1 or K >= N or K != int(K)):
@@ -29,13 +32,41 @@ def validate_input(K, iter, N):
         return False    
     return True
 
+def euclid_dist(vector1, vector2):
+    squared_differences = [(float(v1) - float(v2)) ** 2 for v1, v2 in zip(vector1, vector2)]
+    sum_of_squares = sum(squared_differences)
+    norm = math.sqrt(sum_of_squares)
+    return norm
+
+def find_nearest_center_dist(centroids, data_point):
+    min_dist = np.inf
+    for k in range(len(centroids)):        
+        dist = euclid_dist(centroids.iloc[k].values, data_point.values) 
+        if dist < min_dist:
+            min_dist = dist
+    return min_dist
+
+def get_weights(centroids, data_points):
+    weights = []
+    for i in range(len(data_points)):
+        weights.append(find_nearest_center_dist(centroids, data_points.iloc[i]))
+    sum_weights = sum(weights)
+    norm_weights = [x/sum_weights for x in weights]
+    return pd.Series(data=norm_weights, copy=False)
 
 def init_centroids(data_points, K):
     # each row is a centroid, each column is index of coordinate
-    data_points = data_points.reset_index(drop=True)
-    centroids = data_points.iloc[:K].copy()
-    return centroids
-
+    #data_points = data_points.reset_index(drop=True)
+    centroids = pd.DataFrame()    
+    i = np.random.choice(len(data_points))    
+    indices = [i]
+    centroids = pd.concat([centroids,data_points.iloc[[i]]], ignore_index=True)
+    for k in range(K -1):
+        weight = get_weights(centroids, data_points)
+        j = np.random.choice(len(data_points), p=weight) 
+        centroids = pd.concat([centroids, data_points.iloc[[j]]], ignore_index=True)
+        indices.append(j)
+    return centroids, indices
 
 def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     min_dist = float('inf')
@@ -77,11 +108,6 @@ def convergence(centroids, prev, eps):
             return False
     return True
 
-def euclid_dist(vector1, vector2):
-    squared_differences = [(v1 - v2) ** 2 for v1, v2 in zip(vector1, vector2)]
-    sum_of_squares = sum(squared_differences)
-    norm = math.sqrt(sum_of_squares)
-    return norm
 
 def main(args):    
     if (len(args) == 5):
@@ -95,29 +121,28 @@ def main(args):
         return
     K = int(K, base=10)
     eps = float(eps)
-    print(f"Filename 1: {filename1}, Filename 2:  {filename2}")
+    # print(f"Filename 1: {filename1}, Filename 2:  {filename2}")
     dps1 = pd.read_csv(filename1, header=None)
     dps2 = pd.read_csv(filename2, header=None)
     data_points = pd.merge(dps1, dps2, how='inner', on=0)
-    
     data_points = data_points.sort_values(by=0,ascending=True)
     #Print first line
     dim = len(data_points.iloc[0]) -1
     data_points = data_points.iloc[:,1:]
     N = len(data_points)    
-    print(f"Num points = {N}, The dimension is {dim}, the number of iterations is: {iter}, epsilon = {eps}, K = {K}")
+    # print(f"Num points = {N}, The dimension is {dim}, the number of iterations is: {iter}, epsilon = {eps}, K = {K}")
     # print(data_points.sort_values(by=0,ascending=True))
     # print(data_points.head(K))
     # print(data_points.info())
-    centroids = init_centroids(data_points, K)
+    centroids, indices = init_centroids(data_points, K)
     #if (centroids == None or data_points == None):
     #    return
     if (validate_input(K, iter, N)):   
         data_points = data_points.values.tolist()
         centroids = centroids.values.tolist()  
-        print(centroids)
-        mk.fit(centroids, data_points, iter, N, K, dim, eps)
-        #print_centroids(mk.fit(centroids, data_points, iter, N, K, dim))
+        print(",".join(map(str, indices)))
+        ret_centroids = mk.fit(centroids, data_points, iter, N, K, dim, eps)
+        print_centroids(ret_centroids)
 
 
 main(sys.argv)

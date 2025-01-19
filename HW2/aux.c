@@ -25,7 +25,6 @@ PyObject* GetCentsList(struct centroids *head_centroid, int dim, int K){
     PyObject* coords;
     PyObject* python_centroids_list;
     PyObject* python_val;
-
     python_centroids_list = PyList_New(K);
     for (int i = 0; i < K; ++i)
     {

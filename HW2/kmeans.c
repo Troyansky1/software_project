@@ -9,13 +9,7 @@
 #define DPRINT {}
 #endif
 
-#define ITERNUM 200
-#define EPS 0.001
-
-
 int num_points;
-
-int coord_len;
 
 void print_point(struct data_points *point, int dim);
 
@@ -48,7 +42,6 @@ void print_centroids(struct centroids *head_centroid, int K, int dim){
     struct coord* curr;
     int i = 0;
     int j;
-    printf("print centroids\n");
       while (i < K)
     {
         curr = head_centroid->coords;
@@ -202,18 +195,17 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     return ret;
 }
 
-struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim){
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim, int eps){
     int conv_flag = 0;
     int i = 0;
     
     while ((i < iter) && (conv_flag == 0))
     {
-        printf("%d\n", i);
         assign_to_clusters(head_point, head_centroid, K, num_points, dim);
-        conv_flag = update_centroids_and_check_covergence(head_centroid, EPS, K, dim);   
-        print_centroids(head_centroid,K, dim);
+        conv_flag = update_centroids_and_check_covergence(head_centroid, eps, K, dim);   
         i ++;
     }
+    print_centroids(head_centroid, K, dim);
     return head_centroid;
 }
 
