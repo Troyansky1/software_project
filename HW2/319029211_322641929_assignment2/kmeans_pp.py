@@ -6,12 +6,6 @@ import numpy as np
 import pandas as pd
 import mykmeanssp as mk
 
-# each centroid and point is represented by its index in list centroids and datapoints respectively
-# every vector is a list of coordinates
-# data structures used:
-# cent_to_dots_map - dictionary where keys are indexes of centroids and values are lists of vectors assigned to that centroid
-# dot_to_cent_map - dictionary where keys are indexes of points and values are the centroid vector that dot is assigned to
-
 np.random.seed(1234)
 
 def print_centroids(centroids):
@@ -68,46 +62,6 @@ def init_centroids(data_points, K):
         indices.append(j)
     return centroids, indices
 
-def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
-    min_dist = float('inf')
-    min_cent = 0
-    for j, vec_cent in enumerate(centroids):
-        dist = euclid_dist(vec_xi, vec_cent)
-        if (dist <= min_dist):
-            min_dist = dist
-            min_cent = j
-    cent_to_dots_map[min_cent].append(vec_xi)
-    dot_to_cent_map[i] = centroids[min_cent]
-
-def calc_mean(centroid):
-    num_points = len(centroid)
-    num_coords = len(centroid[0])
-    coords_sum = [0] * num_coords
-
-    for coord in centroid:
-        for i in range(num_coords):
-            coords_sum[i] += coord[i]
-
-    # Calculate the mean for each dimension
-    centroid = [coords_sum[i] / num_points for i in range(num_coords)]
-
-    return centroid
-
-def update_centroids(centroids, cent_to_dots_map):
-    for i in range(len(centroids)):
-        centroids[i] = calc_mean(cent_to_dots_map[i])
-
-def clear(cent_to_dots_map):
-    for key in cent_to_dots_map:
-        cent_to_dots_map[key] = []
-
-def convergence(centroids, prev, eps):
-    for cent1, cent2 in zip(centroids, prev):
-        delta_mu = euclid_dist(cent1, cent2)
-        if (delta_mu >= eps):
-            return False
-    return True
-
 
 def main(args):    
     if (len(args) == 5):
@@ -121,22 +75,14 @@ def main(args):
         return
     K = int(K, base=10)
     eps = float(eps)
-    # print(f"Filename 1: {filename1}, Filename 2:  {filename2}")
     dps1 = pd.read_csv(filename1, header=None)
     dps2 = pd.read_csv(filename2, header=None)
     data_points = pd.merge(dps1, dps2, how='inner', on=0)
     data_points = data_points.sort_values(by=0,ascending=True)
-    #Print first line
     dim = len(data_points.iloc[0]) -1
     data_points = data_points.iloc[:,1:]
     N = len(data_points)    
-    # print(f"Num points = {N}, The dimension is {dim}, the number of iterations is: {iter}, epsilon = {eps}, K = {K}")
-    # print(data_points.sort_values(by=0,ascending=True))
-    # print(data_points.head(K))
-    # print(data_points.info())
     centroids, indices = init_centroids(data_points, K)
-    #if (centroids == None or data_points == None):
-    #    return
     if (validate_input(K, iter, N)):   
         data_points = data_points.values.tolist()
         centroids = centroids.values.tolist()  
@@ -147,20 +93,3 @@ def main(args):
 
 main(sys.argv)
 
-"""
-cont = True
-if (len(sys.argv) == 4):
-    K, iter, filename = sys.argv[1:]
-elif (len(sys.argv) == 3):
-    K, filename = sys.argv[1:]
-    iter = 200
-else:
-    print("An Error Has Occurred")
-    cont = False
-
-if (cont):
-    K = float(K)
-    iter = float(iter)
-    if (validate_input(K, iter, filename)):
-        run_kmeans(K, filename, iter)
-"""
