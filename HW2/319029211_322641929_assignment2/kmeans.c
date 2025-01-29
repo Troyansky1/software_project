@@ -184,21 +184,12 @@ int update_centroids_and_check_covergence(struct centroids* cents, double eps, i
     }
     prev_head = prev_coords;
     
-    /* Free coords
-    curr_coord = prev_head;
-    while (curr_coord != NULL)
-    {
-        next_coord = curr_coord->next_coord;
-        free(curr_coord);
-        curr_coord = next_coord;
-    } */
     return ret;
 }
 
-struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim, int eps){
+struct centroids* run_kmeans(struct data_points* head_point, struct centroids* head_centroid, int K, int iter, int num_points, int dim, double eps){
     int conv_flag = 0;
-    int i = 0;
-    
+    int i = 0;    
     while ((i < iter) && (conv_flag == 0))
     {
         assign_to_clusters(head_point, head_centroid, K, num_points, dim);
@@ -210,41 +201,6 @@ struct centroids* run_kmeans(struct data_points* head_point, struct centroids* h
 }
 
 int main(int argc, char **argv){    
-    /*
-    struct data_points *head_point;
-    struct centroids *head_centroid;
-    int K;
-    int iter;
-
-    head_point = init_datapoints();
-    if (head_point == NULL){
-        printf("An Error Has Occurred\n");
-        return 1;
-    }
-    else if (head_point->idx == -1){
-        printf("An Error Has Occurred\n");
-        return 1;
-    }
-    count(head_point->coords);
-    if (num_points == 0) {
-        free_points(head_point, num_points);
-        printf("An Error Has Occurred\n");
-        return 1;
-    }
-    K = get_k(argv, num_points);
-    iter = get_iter(argv, argc);
-    if (argc > 3 || argc < 2 || K == -1 || iter == -1){
-        free_points(head_point, num_points);
-        return 1;
-    }
-    head_centroid = init_centroids(K, head_point);
-    if (head_centroid == NULL){
-        free_points(head_point, num_points);
-        return 1;
-    }
-    
-    run_kmeans(head_point, head_centroid, K, iter, num_points);
-    */
     return 0;
     
 }

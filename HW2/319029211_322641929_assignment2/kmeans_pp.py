@@ -69,14 +69,26 @@ def main(args):
         iter = 300
     elif (len(args) == 6):
         K, iter, eps, filename1, filename2 = args[1:]
-        iter = int(iter, base=10)
+        try:
+            iter = int(iter, base=10)
+        except ValueError:
+            print("Invalid maximum iteration!")
+            return 
     else:
         print("An Error Has Occurred")
         return
-    K = int(K, base=10)
+    try:
+        K = int(K, base=10)
+    except ValueError:
+        print("Invalid number of clusters!")
+        return 
     eps = float(eps)
-    dps1 = pd.read_csv(filename1, header=None)
-    dps2 = pd.read_csv(filename2, header=None)
+    try:
+        dps1 = pd.read_csv(filename1, header=None)
+        dps2 = pd.read_csv(filename2, header=None)
+    except IOError:
+        print("An Error Has Occurred")
+        return
     data_points = pd.merge(dps1, dps2, how='inner', on=0)
     data_points = data_points.sort_values(by=0,ascending=True)
     dim = len(data_points.iloc[0]) -1
@@ -88,7 +100,6 @@ def main(args):
         centroids = centroids.values.tolist()  
         print(",".join(map(str, indices)))
         ret_centroids = mk.fit(centroids, data_points, iter, N, K, dim, eps)
-        print_centroids(ret_centroids)
 
 
 main(sys.argv)

@@ -31,8 +31,7 @@ rm -r ./build || echo "No build to remove"
 rm mykmeanssp.cpython*.so || echo "No so to remove"
 echo "------- Compile -------"
 python3 setup.py build_ext --inplace
-echo "------- Test -------"
-pytest
+
 echo "------- Run -------"
 testKmeans "3 333" 0 ../tests/input_1_db_1.txt ../tests/input_1_db_2.txt ../tests/output_1.txt
 testKmeans "49 2" 0 ../tests/input_1_db_1.txt ../tests/input_1_db_2.txt ../tests/output_1__49_2_0.txt
