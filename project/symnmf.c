@@ -3,14 +3,14 @@
 # include <math.h>
 # include "symnmf.h"
 
+float e = 2.71828;
 
-
-float** init_matrix_mem(int n) {
+float** init_matrix_mem(int n, int d) {
     float *p;
     float **a;
     int i;
     /* Allocate contiguous memory for the matrix */
-    p = calloc(n * n, sizeof(float));  
+    p = calloc(n * d, sizeof(float));  
     if (!p) return NULL;  
     
     a = calloc(n, sizeof(float*));  
@@ -20,7 +20,7 @@ float** init_matrix_mem(int n) {
     }
 
     for (i = 0; i < n; i++)
-        a[i] = p + i * n;
+        a[i] = p + i * d;
 
     return a;
 }
@@ -39,7 +39,6 @@ void get_matrix_params(int *n, int *d, FILE* file) {
     int first_row = 1;
     *n = 0;
     *d = 1; 
-
     while ((ch = fgetc(file)) != EOF) {
         if (first_row) {
             if (ch == ',') {
@@ -51,7 +50,6 @@ void get_matrix_params(int *n, int *d, FILE* file) {
             first_row = 0;
         }
     }
-
     /* handle case of file not ending with new line
     if (ch != '\n' && d > 0) {
         n++;
@@ -102,16 +100,47 @@ float** create_X(FILE* file){
         printf("An Error Has Occurred\n");
         return NULL; 
     }
-    X = init_matrix_mem(n);
+    X = init_matrix_mem(n, d);
     init_X(file, X, n);
     return X;
 }
 
-void calc_euclid_dist();
+float calc_euclid_dist(float *a, float *b, int d){
+    int i;
+    float dist = 0;
+    float tmp = 0;
+    for (i = 0; i < d; i++){
+        tmp = a[i] - b[i];
+        tmp = tmp*tmp;
+        dist += tmp;
+    }
+    return dist;
+}
 
-float** calc_similarity(float **X);
+float calc_similarity(float *a, float *b, int d){
+    float dist = calc_euclid_dist(a, b, d);
+    float value;
+    value = exp(-0.5 * dist);
+    return value;
+}
 
-void calc_similarity_matrix();
+float** calc_similarity_matrix(float **X, int n, int d){
+    int i;
+    int j;
+    float ** A;
+    A = init_matrix_mem(n, d);
+    for (i = 0; i < d; i++){
+        for (j = 0; j < d; j++){
+            if (i == j){
+                A[i][j] = 0;
+            }
+            else{
+                A[i][j] = calc_similarity(X[i], X[j], d);
+            }
+        }
+    }
+    return A;
+}
 
 void calc_diag_deg();
 
