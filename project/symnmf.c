@@ -3,7 +3,9 @@
 # include <math.h>
 # include "symnmf.h"
 
-float e = 2.71828;
+#define e 2.71828
+#define eps e-4
+#define MAX_ITER 300
 
 float* init_vec_mem(int n) {
     float *p;
@@ -16,26 +18,26 @@ float* init_vec_mem(int n) {
     return p;
 }
 
-float** init_matrix_mem(int n, int d) {
+float** init_matrix_mem(int dim1, int dim2) {
     float *p;
     float **a;
     int i;
     /* Allocate contiguous memory for the matrix */
-    p = calloc(n * d, sizeof(float));  
+    p = calloc(dim1 * dim2, sizeof(float));  
     if (!p){
         printf("An Error Has Occurred\n");
         return NULL;  
     } 
     
-    a = calloc(n, sizeof(float*));  
+    a = calloc(dim1, sizeof(float*));  
     if (!a) {
         free(p);
         printf("An Error Has Occurred\n");
         return NULL;
     }
 
-    for (i = 0; i < n; i++)
-        a[i] = p + i * d;
+    for (i = 0; i < dim1; i++)
+        a[i] = p + i * dim2;
 
     return a;
 }
@@ -253,11 +255,86 @@ float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_
     return prod;
 }
 
-void update_H();
+float inner_prod(float* vec_a, float *vec_b, int dim){
+    float prod;
+    int i;
+    prod = 0;
+    for (i = 0; i < dim; i++){
+        prod+= vec_a[i] * vec_b[i];
+    }
+    return prod;
+}
 
-void check_convergence();
+float** update_H(float** H, float** W, int n, int k){
+    float** HT = transpose(H, n, k);
+    float beta = 0.5;
+    float W_H_ij;
+    float** H_HT;
+    float** H_HT_H;
+    int i;
+    int j;
+    float** H_next;
+    H_next = init_matrix_mem(n, k);
+    H_HT = mat_mult(n, k, n, H, HT);
+    H_HT_H = mat_mult(n, n, k, H_HT, H);
+    for (i = 0; i < n; i++){
+        for (j = 0; j < k; j++){
+            W_H_ij = inner_prod(W[i], HT[j], k);
+            H_next[i][j] = H[i][j]*(1 - beta + beta*(W_H_ij/H_HT_H[i][j]));
+        }
+    }
+    /* free memory*/
+    return H_next;
+}
 
-void optimize_H();
+float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
+    int i;
+    int j;
+    float** sub;
+    sub = init_matrix_mem(dim1, dim2);
+    for (i = 0; i < dim1; i++){
+        for (j = 0; j < dim2; j++){
+            sub[i][j] = mat_a[i][j] - mat_b[i][j];
+        }
+    }
+    return sub;
+}
+
+float calc_frob_norm(float** H, float** H_next, int n, int k){
+    float** sub = mat_sub(n, k, H_next, H);
+    int i;
+    int j;
+    float norm = 0;
+    for (i = 0; i < n; i++){
+        for (j = 0; j < k; j++){
+            norm += pow(sub[i][j], 2);
+        }
+    }
+    norm = sqrt(norm);
+    return norm;
+}
+
+int check_convergence(float** H, float**H_next, int n, int k){
+    float norm = calc_frob_norm(H, H_next, n, k);
+    if (norm < eps){
+        return 1;
+    }
+    return 0;
+}
+
+float** optimize_H(float** W, int k, int n){
+    float** H; 
+    float** H_next; 
+    int convergence = 0;
+    int i = 0;
+    H = init_H(W, k, n);    
+    while (!convergence && i <= MAX_ITER){        
+        H_next = update_H(H, W, n, k);
+        convergence = check_convergence(H, H_next, n, k);
+        i++;
+    }
+    return H_next;
+}
 
 void derive_clustering_sol();
 
