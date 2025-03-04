@@ -7,6 +7,9 @@
 #define eps e-4
 #define MAX_ITER 300
 
+
+void print_matrix(float** matrix, int dim1, int dim2);
+
 float* init_vec_mem(int dim) {
     /*
     * Allocates memory for a vector as a contiguous block.
@@ -144,22 +147,18 @@ void init_X(FILE* file, float** X, int n){
     }
 }
 
-float** create_X(FILE* file){
+float** create_X(FILE* file, int n, int d){
     /*
     * Creates and initializes a matrix X from a txt file.
     * Params:
     *   - file: Open file pointer to read from.
+    * 
+    * 
     * Returns:
     *   - Pointer to a n x d matrix (float**).
     *   - NULL if an error occurs.
     */
-    int n, d;
-    float** X;
-    get_matrix_params(&n, &d, file);
-    if (n <= 0 || d <= 0){
-        printf("An Error Has Occurred\n");
-        return NULL; 
-    }
+    float** X;    
     X = init_matrix_mem(n, d);
     init_X(file, X, n);
     return X;
@@ -446,7 +445,7 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
     return norm;
 }
 
-int check_convergence(float** H, float**H_next, int n, int k){
+int check_convergence(float** H, float** H_next, int n, int k){
     float norm = calc_frob_norm(H, H_next, n, k);
     if (norm < eps){
         return 1;
@@ -454,11 +453,10 @@ int check_convergence(float** H, float**H_next, int n, int k){
     return 0;
 }
 
-float** optimize_H(float** W, int k, int n){
+float** symnmf(float** W, float** H, int k, int n){
     float** H, **H_next; 
     int convergence = 0;
-    int i = 0;
-    H = init_H(W, k, n);    
+    int i = 0;  
     while (!convergence && i <= MAX_ITER){        
         H_next = update_H(H, W, n, k);
         convergence = check_convergence(H, H_next, n, k);
@@ -467,20 +465,65 @@ float** optimize_H(float** W, int k, int n){
     return H_next;
 }
 
+void sym(float **X, int n, int d){
+    float ** A;
+    A = calc_similarity_matrix(X, n, d);
+    print_matrix(A, n, n);
+}
+
+void ddg(float **X, int n){
+    float *D;
+    D = calc_diag_deg_vec(X, n);
+    /* print array*/
+}
+
+void norm(float **X, int n, int d){
+    float * D;
+    float **W, **A;
+    D = calc_diag_deg_vec(X, n);
+    A = calc_similarity_matrix(X, n, d);
+    W = calc_norm_sim_matrix(A, D, n);
+    print_matrix(W, n, n);
+}
+
 void derive_clustering_sol();
 
-int main(int argc, char **argv)
-{
-    FILE *fp = fopen(argv[1],"r");
-    if (argc != 2){
+void run_goal(char* goal, float** X, int n, int d){
+    if(goal == "sym"){
+        sym(X, n ,d);
+    }
+    else if(goal == "ddg"){
+        ddg(X, n);
+    }
+    else if (goal == "norm"){
+        norm(X, n, d);
+    }
+    else{
+        printf("An Error Has Occurred\n");
+    }
+}
+
+int main(int argc, char **argv){
+    float** X;
+    char* goal;
+    int n, d;
+    if (argc != 3){
         printf("An Error Has Occurred\n");
         return 0;
     }
+    FILE *fp = fopen(argv[2],"r");
     if (fp == NULL){
         printf("An Error Has Occurred\n");
         return 0;
     }
-    create_X(fp);
+    get_matrix_params(&n, &d, fp);
+    if (n <= 0 || d <= 0){
+        printf("An Error Has Occurred\n");
+        return 0; 
+    }
+    X = create_X(fp, n, d);
     fclose(fp);
+    goal = argv[1];
+    run_goal(goal, X, n, d);
     return 1;
 }
