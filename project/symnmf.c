@@ -7,10 +7,18 @@
 #define eps e-4
 #define MAX_ITER 300
 
-float* init_vec_mem(int n) {
+float* init_vec_mem(int dim) {
+    /*
+    * Allocates memory for a vector as a contiguous block.
+    * Parameters:
+    *   - dim: The dimension of the vector.
+    * Returns:
+    *   - A pointer to an array if successful.
+    *   - NULL if memory allocation fails.
+    */
     float *p;
     /* Allocate contiguous memory for the vector */
-    p = calloc(n, sizeof(float));  
+    p = calloc(dim, sizeof(float));  
     if (!p){
         printf("An Error Has Occurred\n");
         return NULL;  
@@ -19,6 +27,15 @@ float* init_vec_mem(int n) {
 }
 
 float** init_matrix_mem(int dim1, int dim2) {
+    /*
+    * Allocates memory for an dim1 x dim2 matrix as a contiguous block.
+    * Parameters:
+    *   - dim1: The number of rows.
+    *   - dim2: The number of columns.
+    * Returns:
+    *   - A pointer to an array of row pointers if successful.
+    *   - NULL if memory allocation fails.
+    */
     float *p;
     float **a;
     int i;
@@ -28,30 +45,44 @@ float** init_matrix_mem(int dim1, int dim2) {
         printf("An Error Has Occurred\n");
         return NULL;  
     } 
-    
     a = calloc(dim1, sizeof(float*));  
     if (!a) {
         free(p);
         printf("An Error Has Occurred\n");
         return NULL;
     }
-
     for (i = 0; i < dim1; i++)
         a[i] = p + i * dim2;
 
     return a;
 }
 
-void free_matrix_mem(float** a) {
-    if (a) {
+void free_matrix_mem(float** matrix) {
+    /*
+    * Frees memory allocated for a matrix.
+    * Parameters:
+    *   - matrix: A pointer to a matrix- an array of row pointers.
+    * Returns:
+    *   - None.
+    */
+    if (matrix) {
         /* Free the contiguous block of memory */
-        free(a[0]);  
+        free(matrix[0]);  
         /*  Free the row pointers */
-        free(a);     
+        free(matrix);     
     }
 }
 
 void get_matrix_params(int *n, int *d, FILE* file) {
+    /*
+    * Parses a matrix file to count rows (n) and columns (d).
+    * Params:
+    *   - n: Pointer to store number of rows.
+    *   - d: Pointer to store number of columns.
+    *   - file: Open file pointer to read from.
+    * 
+    * Returns: None (updates *n and *d).
+    */
     char ch;
     int first_row = 1;
     *n = 0;
@@ -77,9 +108,15 @@ void get_matrix_params(int *n, int *d, FILE* file) {
 }
 
 void init_X(FILE* file, float** X, int n){
-    /* Initialize X with values*/
-    int i;
-    int j;
+    /*
+    * Reads matrix values from a txt file into X.
+    * Params:
+    *   - file: Open file pointer to read from.
+    *   - X: 2D float array (n x d) to store parsed values.
+    *   - n: Number of rows in X.
+    * Returns: None (modifies X in place). Prints error and frees X on failure.
+    */
+    int i, j;
     /* Buffer to hold each line TODO handle bigger lengths*/
     char line[1024];  
     char *ptr;  
@@ -107,10 +144,16 @@ void init_X(FILE* file, float** X, int n){
     }
 }
 
-
 float** create_X(FILE* file){
-    int n;
-    int d;
+    /*
+    * Creates and initializes a matrix X from a txt file.
+    * Params:
+    *   - file: Open file pointer to read from.
+    * Returns:
+    *   - Pointer to a n x d matrix (float**).
+    *   - NULL if an error occurs.
+    */
+    int n, d;
     float** X;
     get_matrix_params(&n, &d, file);
     if (n <= 0 || d <= 0){
@@ -123,6 +166,15 @@ float** create_X(FILE* file){
 }
 
 float calc_euclid_dist(float *a, float *b, int d){
+    /*
+    * Computes the squared Euclidean distance between two d-dimensional points.
+    * Params:
+    *   - a: Pointer to the first point (float array).
+    *   - b: Pointer to the second point (float array).
+    *   - d: Number of dimensions.
+    * Returns:
+    *   - The squared Euclidean distance between a and b.
+    */
     int i;
     float dist = 0;
     float tmp = 0;
@@ -135,6 +187,15 @@ float calc_euclid_dist(float *a, float *b, int d){
 }
 
 float calc_similarity(float *a, float *b, int d){
+    /*
+    * Computes the similarity between two d-dimensional points.
+    * Params:
+    *   - a: Pointer to the first point (float array).
+    *   - b: Pointer to the second point (float array).
+    *   - d: Number of dimensions.
+    * Returns:
+    *   - The similarity value between a and b.
+    */
     float dist = calc_euclid_dist(a, b, d);
     float value;
     value = exp(-0.5 * dist);
@@ -142,8 +203,17 @@ float calc_similarity(float *a, float *b, int d){
 }
 
 float** calc_similarity_matrix(float **X, int n, int d){
-    int i;
-    int j;
+    /*
+    * Computes the similarity matrix for a dataset.
+    * Params:
+    *   - X: Pointer to the dataset (n x d matrix).
+    *   - n: Number of data points (rows).
+    *   - d: Number of dimensions (columns).
+    * Returns:
+    *   - Pointer to the computed n x n similarity matrix.
+    *   - NULL if memory allocation fails.
+    */
+    int i, j;
     float ** A;
     A = init_matrix_mem(n, n);
     if (A == NULL) return 0;
@@ -161,8 +231,15 @@ float** calc_similarity_matrix(float **X, int n, int d){
 }
 
 float* calc_diag_deg_vec(float **A, int n){
-    int i;
-    int j;
+    /*
+    * Computes the diagonal degree vector for a similarity matrix.
+    * Params:
+    *   - A: Pointer to the similarity matrix (n x n).
+    *   - n: Number of data points (rows).
+    * Returns:
+    *   - Pointer to a vector (float array) of size n, representing a diagonal matrix.
+    */
+    int i, j;
     float d_i;
     float *D = init_vec_mem(n);
     for (i = 0; i < n; i++){
@@ -176,6 +253,14 @@ float* calc_diag_deg_vec(float **A, int n){
 }
 
 void calc_inv_sqrt(float *D, int n){
+        /*
+        * Computes D^-(1/2), the inverted sqrt of a n dim diagonal matrix D.
+        * Params:
+        *   - D: Diagonal matrix, represented by an n sized vector (float array).
+        *   - n: Number of data points (rows).
+        * Returns:
+        *   - Pointer to a vector (float array) of size n, representing the matrix after the transformation.
+        */
     int i;
     for (i = 0; i < n; i++){
         D[i] = 1/(sqrt(D[i]));
@@ -184,8 +269,16 @@ void calc_inv_sqrt(float *D, int n){
 
 
 float** calc_norm_sim_matrix(float **A, float *D, int n){
-    int i;
-    int j;
+    /*
+    * Computes the normalized similarity matrix
+    * Params:
+    *   - A: Pointer to the similarity matrix (n * n).
+    *   - D: Diagonal matrix, represented by an n sized vector (float array).
+    *   - n: Number of data points (rows).
+    * Returns:
+    *   - Pointer to the computed n x n norm similarity matrix.
+    */
+    int i, j;
     float** W = init_matrix_mem(n, n);
     calc_inv_sqrt(D, n);
     for (i = 0; i < n; i++){
@@ -197,8 +290,15 @@ float** calc_norm_sim_matrix(float **A, float *D, int n){
 }
 
 float calc_m(float **W, int n){
-    int i;
-    int j;
+    /*
+    * Computes the average of all entries of W.
+    * Params:
+    *   - W: Pointer to the normalized similarity matrix (n * n).
+    *   - n: Number of data points (rows).
+    * Returns:
+    *   - The average (float) of all entries of W.
+    */
+    int i, j;
     float avg = 0;
     for (i = 0; i < n; i++){
         for (j = 0; j < n; j++){
@@ -210,10 +310,27 @@ float calc_m(float **W, int n){
 }
 
 float random_float_in_range(float min, float max) {
+    /*
+    * Returns a random number (float) between min and max.
+    * Params:
+    *   - min: A number (float) that represents the lower end of the range.
+    *   - max: A number (float) that represents the upper end of the range.
+    * Returns:
+    *   - A random number (float) in the given range.
+    */
     return (rand() / (float)RAND_MAX) * (max - min) + min;  
 }
 
 float** init_H(float **W, int k, int n){
+    /*
+    * Randomly initialize H with values from the interval [0, 2 ∗ sqrt(m/k)].
+    * Params:
+    *   - W: pointer to the normalized similarity matrix (n * n).
+    *   - k: Number of clusters (columns).
+    *   - n: Number of data points (rows).
+    * Returns:
+    *   - Pointer to the initialized H matrix.
+    */
     float m = calc_m(W, n);
     float** H = init_matrix_mem(n, k);
     int i;
@@ -227,9 +344,17 @@ float** init_H(float **W, int k, int n){
 }
 
 float** transpose(float **H, int n, int k){
-    float** H_T = init_matrix_mem(k, n);
-    int i;
-    int j;
+    /*
+    * Computes the transposed matrix.
+    * Params:
+    *   - H: pointer to a matrix (n * k).
+    *   - k: Number of clusters (columns).
+    *   - n: Number of data points (rows).
+    * Returns:
+    *   - Pointer to the transposed matrix.
+    */
+    float **H_T = init_matrix_mem(k, n);
+    int i, j;
     for (i = 0; i < n; i++){
         for (j = 0; j < k; j++){
             H_T[i][j] = H[j][i];
@@ -239,7 +364,18 @@ float** transpose(float **H, int n, int k){
 }
 
 float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b){
-    float** prod;
+    /*
+    * Computes matrix multiplication.
+    * Params:
+    *   - a_rows: Number of rows in matrix a.
+    *   - a_cols: Number of columns in matrix a (equals to the number of rows in matrix b).
+    *   - b_cols: Number of rows in matrix a.
+    *   - mat_a: Pointer to the first matrix (a_rows * a_cols).
+    *   - mat_b: Pointer to the second matrix (a_cols * b_cols). .
+    * Returns:
+    *   - Pointer to the matrix multiplication.
+    */
+    float **prod;
     int i, j, l;
     float sum;
     prod = init_matrix_mem(a_rows, b_cols);
@@ -266,14 +402,12 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
 }
 
 float** update_H(float** H, float** W, int n, int k){
-    float** HT = transpose(H, n, k);
+    int i, j;
     float beta = 0.5;
+    float **HT, **H_HT, **H_HT_H, **H_next;
     float W_H_ij;
-    float** H_HT;
-    float** H_HT_H;
-    int i;
-    int j;
-    float** H_next;
+
+    HT = transpose(H, n, k);
     H_next = init_matrix_mem(n, k);
     H_HT = mat_mult(n, k, n, H, HT);
     H_HT_H = mat_mult(n, n, k, H_HT, H);
@@ -288,8 +422,7 @@ float** update_H(float** H, float** W, int n, int k){
 }
 
 float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
-    int i;
-    int j;
+    int i, j;
     float** sub;
     sub = init_matrix_mem(dim1, dim2);
     for (i = 0; i < dim1; i++){
@@ -302,8 +435,7 @@ float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
 
 float calc_frob_norm(float** H, float** H_next, int n, int k){
     float** sub = mat_sub(n, k, H_next, H);
-    int i;
-    int j;
+    int i, j;
     float norm = 0;
     for (i = 0; i < n; i++){
         for (j = 0; j < k; j++){
@@ -323,8 +455,7 @@ int check_convergence(float** H, float**H_next, int n, int k){
 }
 
 float** optimize_H(float** W, int k, int n){
-    float** H; 
-    float** H_next; 
+    float** H, **H_next; 
     int convergence = 0;
     int i = 0;
     H = init_H(W, k, n);    
