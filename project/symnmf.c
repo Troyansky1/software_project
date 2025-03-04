@@ -10,6 +10,18 @@
 
 
 void print_matrix(float** matrix, int dim1, int dim2){
+    /*
+    * Prints a matrix with dimensions dim1 x dim2. Each element of the 
+    * matrix is printed with a precision of four decimal places, with commas separating 
+    * elements in a row and newlines between rows.
+    * Parameters:
+    *   - matrix: Pointer to the matrix (dim1 x dim2) to be printed.
+    *   - dim1: The number of rows in the matrix.
+    *   - dim2: The number of columns in the matrix.
+    * Returns:
+    *   - None.
+    */
+
     int i, j;
     for(i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
@@ -21,6 +33,18 @@ void print_matrix(float** matrix, int dim1, int dim2){
 }
 
 void print_diag_matrix(float* vector, int dim){
+    /*
+    * Prints the diagonal matrix representation of a given vector. The function takes a 
+    * vector of size dim and prints it as a diagonal matrix, where the diagonal entries 
+    * correspond to the elements of the vector and all off-diagonal entries are zero.
+    * Each element of the matrix is printed with a precision of four decimal places, with commas separating 
+    * elements in a row and newlines between rows.
+    * Parameters:
+    *   - vector: Pointer to the vector (size dim) to be printed as a diagonal matrix.
+    *   - dim: The dimension of the vector (and the size of the resulting square matrix).
+    * Returns:
+    *   - None.
+    */
     int i, j;
     for(i = 0; i < dim; i++){
         for (j = 0; j < dim; j++){
@@ -413,6 +437,15 @@ float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_
 }
 
 float inner_prod(float* vec_a, float *vec_b, int dim){
+    /*
+    * Computes the inner product (dot product) of two vectors `vec_a` and `vec_b` of size dim.
+    * Parameters:
+    *   - vec_a: Pointer to the first vector (size dim).
+    *   - vec_b: Pointer to the second vector (size dim).
+    *   - dim: The size (dimension) of the vectors.
+    * Returns:
+    *   - The inner product of the two vectors as a float.
+    */
     float prod;
     int i;
     prod = 0;
@@ -423,11 +456,24 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
 }
 
 float** update_H(float** H, float** W, int n, int k){
+    /*
+    * Updates the matrix `H` based on matrix factorization techniques using the 
+    * matrix `W` and intermediate calculations. The updated matrix `H_next` is 
+    * computed by first transposing `H`, performing matrix multiplications, 
+    * and then updating each element of `H` based on a formula involving the 
+    * inner product of `W` and `HT`.
+    * Parameters:
+    *   - H: Pointer to the matrix `H` (size n x k).
+    *   - W: Pointer to the matrix `W` (size n x k).
+    *   - n: The number of rows in matrix `H` and `W`.
+    *   - k: The number of columns in matrix `H` and `W`.
+    * Returns:
+    *   - Pointer to the updated matrix `H_next` (size n x k).
+    */
     int i, j;
     float beta = 0.5;
     float **HT, **H_HT, **H_HT_H, **H_next;
     float W_H_ij;
-
     HT = transpose(H, n, k);
     H_next = init_matrix_mem(n, k);
     H_HT = mat_mult(n, k, n, H, HT);
@@ -443,6 +489,16 @@ float** update_H(float** H, float** W, int n, int k){
 }
 
 float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
+    /*
+    * Computes the element-wise subtraction of two matrices mat_a and mat_b.
+    * Parameters:
+    *   - dim1: The number of rows in both matrices.
+    *   - dim2: The number of columns in both matrices.
+    *   - mat_a: Pointer to the first matrix (dim1 x dim2).
+    *   - mat_b: Pointer to the second matrix (dim1 x dim2).
+    * Returns:
+    *   - Pointer to the resulting matrix (dim1 x dim2) containing the element-wise differences.
+    */
     int i, j;
     float** sub;
     sub = init_matrix_mem(dim1, dim2);
@@ -455,6 +511,18 @@ float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
 }
 
 float calc_frob_norm(float** H, float** H_next, int n, int k){
+    /*
+    * Calculates the Frobenius norm of the difference between two matrices H and H_next.
+    * The Frobenius norm is computed as the square root of the sum of the squared element-wise 
+    * differences between the two matrices.
+    * Parameters:
+    *   - H: Pointer to the matrix H (n x k).
+    *   - H_next: Pointer to the matrix H_next (n x k).
+    *   - n: The number of rows in both matrices.
+    *   - k: The number of columns in both matrices.
+    * Returns:
+    *   - The Frobenius norm as a float.
+    */
     float** sub = mat_sub(n, k, H_next, H);
     int i, j;
     float norm = 0;
@@ -468,6 +536,18 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
 }
 
 int check_convergence(float** H, float** H_next, int n, int k){
+    /*
+    * Checks if the convergence condition has been met by comparing the Frobenius norm 
+    * of the difference between two matrices `H` and `H_next` to a predefined threshold `eps`.
+    * Parameters:
+    *   - H: Pointer to the matrix `H` (size n x k).
+    *   - H_next: Pointer to the matrix `H_next` (size n x k).
+    *   - n: The number of rows in both matrices.
+    *   - k: The number of columns in both matrices.
+    * Returns:
+    *   - 1 if convergence is reached (i.e., norm < eps).
+    *   - 0 if convergence is not reached.
+    */
     float norm = calc_frob_norm(H, H_next, n, k);
     if (norm < eps){
         return 1;
@@ -476,6 +556,17 @@ int check_convergence(float** H, float** H_next, int n, int k){
 }
 
 float** symnmf(float** W, float** H, int k, int n){
+    /*
+    * Performs the symmetric non-negative matrix factorization algorithm 
+    * Iterates until convergence is smaller than epsilon or until it reaches the max number of iterations.
+    * Parameters:
+    *   - W: Pointer to the matrix W (n x k).
+    *   - H: Pointer to the matrix H (n x k).
+    *   - k: The number of columns in matrix H (and matrix W).
+    *   - n: The number of rows in matrix H (and matrix W).
+    * Returns:
+    *   - Pointer to the updated matrix H_next (n x k).
+    */
     float **H_next; 
     int convergence = 0;
     int i = 0;  
@@ -488,12 +579,31 @@ float** symnmf(float** W, float** H, int k, int n){
 }
 
 void sym(float **X, int n, int d){
+    /*
+    *  Computes the similarity matrix A from the input matrix X and prints the resulting matrix A. 
+    * Parameters:
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (number of rows in the matrix X and number of rows and columns in matrix A).
+    *   - d: The number of columns in the matrix X.
+    * Returns:
+    *   - None.
+    */
     float ** A;
     A = calc_similarity_matrix(X, n, d);
     print_matrix(A, n, n);
 }
 
 void ddg(float **X, int n, int d){
+    /*
+    * Computes the diagonal degree matrix D from the similarity matrix A, 
+    * which is derived from the input matrix X. prints D at the end.
+    * Parameters:
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
+    *   - d: The number of columns in matrix X.
+    * Returns:
+    *   - None.
+    */
     float **A;
     float *D;
     A = calc_similarity_matrix(X, n, d);
@@ -502,6 +612,15 @@ void ddg(float **X, int n, int d){
 }
 
 void norm(float **X, int n, int d){
+    /*
+ * Computes the normalized similarity matrix W from the input matrix X and prints it.
+ * Parameters:
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
+    *   - d: The number of columns in matrix X.
+ * Returns:
+ *   - None.
+ */
     float * D;
     float **W, **A;
     A = calc_similarity_matrix(X, n, d);
@@ -513,6 +632,18 @@ void norm(float **X, int n, int d){
 void derive_clustering_sol();
 
 void run_goal(char* goal, float** X, int n, int d){
+    /*
+    * Executes a specific function based on the provided goal string. The function checks 
+    * the value of `goal` and calls the corresponding function: `sym`, `ddg`, or `norm`. 
+    * If the goal is not recognized, an error message is printed.
+    * Parameters:
+    *   - goal: A string indicating the goal to execute. It can be "sym", "ddg", or "norm".
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
+    *   - d: The number of columns in matrix X.
+    * Returns:
+    *   - None.
+    */
     if(strcmp(goal, "sym") == 0){
         sym(X, n ,d);
     }
