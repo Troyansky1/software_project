@@ -1,5 +1,6 @@
 # include <stdio.h>
 # include <stdlib.h>
+# include <string.h>
 # include <math.h>
 # include "symnmf.h"
 
@@ -8,7 +9,28 @@
 #define MAX_ITER 300
 
 
-void print_matrix(float** matrix, int dim1, int dim2);
+void print_matrix(float** matrix, int dim1, int dim2){
+    int i, j;
+    for(i = 0; i < dim1; i++){
+        for (j = 0; j < dim2; j++){
+            printf("%.4f", matrix[i][j]);
+            if (j < dim2 -1) printf("%c", ',');
+            else printf("%c", '\n');
+        }
+    }
+}
+
+void print_diag_matrix(float* vector, int dim){
+    int i, j;
+    for(i = 0; i < dim; i++){
+        for (j = 0; j < dim; j++){
+            if (i == j) printf("%.4f", vector[i]);
+            else printf("%d", 0);
+            if (j < dim -1) printf("%c", ',');
+            else printf("%c", '\n');
+        }
+    }
+}
 
 float* init_vec_mem(int dim) {
     /*
@@ -105,8 +127,6 @@ void get_matrix_params(int *n, int *d, FILE* file) {
     if (ch != '\n' && d > 0) {
         n++;
     } */
-    printf("The num of lines is: %d\n", *n);
-    printf("The num of rows is: %d\n", *d);
     rewind(file);
 }
 
@@ -179,7 +199,7 @@ float calc_euclid_dist(float *a, float *b, int d){
     float tmp = 0;
     for (i = 0; i < d; i++){
         tmp = a[i] - b[i];
-        tmp = tmp*tmp;
+        tmp = pow(tmp, 2);
         dist += tmp;
     }
     return dist;
@@ -262,7 +282,9 @@ void calc_inv_sqrt(float *D, int n){
         */
     int i;
     for (i = 0; i < n; i++){
-        D[i] = 1/(sqrt(D[i]));
+        if(D[i] != 0){
+            D[i] = 1/(sqrt(D[i]));
+        }        
     }
 }
 
@@ -280,8 +302,8 @@ float** calc_norm_sim_matrix(float **A, float *D, int n){
     int i, j;
     float** W = init_matrix_mem(n, n);
     calc_inv_sqrt(D, n);
-    for (i = 0; i < n; i++){
-        for (j = 0; j < n; j++){
+    for (i = 0; i < n; i++){        
+        for (j = 0; j < n; j++){   
             W[i][j] = D[i]*A[i][j]*D[j];
         }
     }
@@ -454,7 +476,7 @@ int check_convergence(float** H, float** H_next, int n, int k){
 }
 
 float** symnmf(float** W, float** H, int k, int n){
-    float** H, **H_next; 
+    float **H_next; 
     int convergence = 0;
     int i = 0;  
     while (!convergence && i <= MAX_ITER){        
@@ -471,17 +493,19 @@ void sym(float **X, int n, int d){
     print_matrix(A, n, n);
 }
 
-void ddg(float **X, int n){
+void ddg(float **X, int n, int d){
+    float **A;
     float *D;
-    D = calc_diag_deg_vec(X, n);
-    /* print array*/
+    A = calc_similarity_matrix(X, n, d);
+    D = calc_diag_deg_vec(A, n);
+    print_diag_matrix(D, n);
 }
 
 void norm(float **X, int n, int d){
     float * D;
     float **W, **A;
-    D = calc_diag_deg_vec(X, n);
     A = calc_similarity_matrix(X, n, d);
+    D = calc_diag_deg_vec(A, n);    
     W = calc_norm_sim_matrix(A, D, n);
     print_matrix(W, n, n);
 }
@@ -489,13 +513,13 @@ void norm(float **X, int n, int d){
 void derive_clustering_sol();
 
 void run_goal(char* goal, float** X, int n, int d){
-    if(goal == "sym"){
+    if(strcmp(goal, "sym") == 0){
         sym(X, n ,d);
     }
-    else if(goal == "ddg"){
-        ddg(X, n);
+    else if(strcmp(goal, "ddg") == 0){
+        ddg(X, n, d);
     }
-    else if (goal == "norm"){
+    else if (strcmp(goal, "norm") == 0){
         norm(X, n, d);
     }
     else{
@@ -507,11 +531,12 @@ int main(int argc, char **argv){
     float** X;
     char* goal;
     int n, d;
+    FILE *fp;
     if (argc != 3){
         printf("An Error Has Occurred\n");
         return 0;
     }
-    FILE *fp = fopen(argv[2],"r");
+    fp = fopen(argv[2],"r");
     if (fp == NULL){
         printf("An Error Has Occurred\n");
         return 0;
