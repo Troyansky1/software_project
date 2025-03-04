@@ -5,17 +5,32 @@
 
 float e = 2.71828;
 
+float* init_vec_mem(int n) {
+    float *p;
+    /* Allocate contiguous memory for the vector */
+    p = calloc(n, sizeof(float));  
+    if (!p){
+        printf("An Error Has Occurred\n");
+        return NULL;  
+    }
+    return p;
+}
+
 float** init_matrix_mem(int n, int d) {
     float *p;
     float **a;
     int i;
     /* Allocate contiguous memory for the matrix */
     p = calloc(n * d, sizeof(float));  
-    if (!p) return NULL;  
+    if (!p){
+        printf("An Error Has Occurred\n");
+        return NULL;  
+    } 
     
     a = calloc(n, sizeof(float*));  
     if (!a) {
         free(p);
+        printf("An Error Has Occurred\n");
         return NULL;
     }
 
@@ -128,9 +143,10 @@ float** calc_similarity_matrix(float **X, int n, int d){
     int i;
     int j;
     float ** A;
-    A = init_matrix_mem(n, d);
-    for (i = 0; i < d; i++){
-        for (j = 0; j < d; j++){
+    A = init_matrix_mem(n, n);
+    if (A == NULL) return 0;
+    for (i = 0; i < n; i++){
+        for (j = 0; j < n; j++){
             if (i == j){
                 A[i][j] = 0;
             }
@@ -142,19 +158,100 @@ float** calc_similarity_matrix(float **X, int n, int d){
     return A;
 }
 
-void calc_diag_deg();
+float* calc_diag_deg_vec(float **A, int n){
+    int i;
+    int j;
+    float d_i;
+    float *D = init_vec_mem(n);
+    for (i = 0; i < n; i++){
+        d_i = 0;
+        for (j = 0; j < n; j++){
+            d_i += A[i][j];
+        }
+        D[i] = d_i;
+    }
+    return D;
+}
 
-void calc_diag_deg_matrix();
+void calc_inv_sqrt(float *D, int n){
+    int i;
+    for (i = 0; i < n; i++){
+        D[i] = 1/(sqrt(D[i]));
+    }
+}
 
-void calc_inv_sqrt();
 
-void mat_mult();
+float** calc_norm_sim_matrix(float **A, float *D, int n){
+    int i;
+    int j;
+    float** W = init_matrix_mem(n, n);
+    calc_inv_sqrt(D, n);
+    for (i = 0; i < n; i++){
+        for (j = 0; j < n; j++){
+            W[i][j] = D[i]*A[i][j]*D[j];
+        }
+    }
+    return W;
+}
 
-void calc_norm_sim_matrix();
+float calc_m(float **W, int n){
+    int i;
+    int j;
+    float avg = 0;
+    for (i = 0; i < n; i++){
+        for (j = 0; j < n; j++){
+            avg += W[i][j];
+        }
+    }
+    avg = avg/(n*n);
+    return avg;
+}
 
-void calc_m();
+float random_float_in_range(float min, float max) {
+    return (rand() / (float)RAND_MAX) * (max - min) + min;  
+}
 
-void init_H();
+float** init_H(float **W, int k, int n){
+    float m = calc_m(W, n);
+    float** H = init_matrix_mem(n, k);
+    int i;
+    int j;
+    for (i = 0; i < n; i++){
+        for (j = 0; j < n; j++){
+            H[i][j] = random_float_in_range(0, 2*sqrt(m/k));
+        }
+    }
+    return H;
+}
+
+float** transpose(float **H, int n, int k){
+    float** H_T = init_matrix_mem(k, n);
+    int i;
+    int j;
+    for (i = 0; i < n; i++){
+        for (j = 0; j < k; j++){
+            H_T[i][j] = H[j][i];
+        }
+    }
+    return H_T;
+}
+
+float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b){
+    float** prod;
+    int i, j, l;
+    float sum;
+    prod = init_matrix_mem(a_rows, b_cols);
+    for (i = 0; i < a_rows; i++){
+        for (j = 0; j < b_cols; j++){
+            sum = 0;
+            for (l = 0; l < a_cols; l++){
+                sum += mat_a[i][l] * mat_b[l][j];
+            }
+            prod[i][j] = sum;
+        }            
+    }
+    return prod;
+}
 
 void update_H();
 
@@ -176,5 +273,6 @@ int main(int argc, char **argv)
         return 0;
     }
     create_X(fp);
+    fclose(fp);
     return 1;
 }
