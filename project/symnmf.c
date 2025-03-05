@@ -240,43 +240,6 @@ void init_X(FILE* file, float** X, int n, int d) {
 }
 
 
-void init_Xold(FILE* file, float** X, int n){
-    /*
-    * Reads matrix values from a txt file into X.
-    * Params:
-    *   - file: Open file pointer to read from.
-    *   - X: 2D float array (n x d) to store parsed values.
-    *   - n: Number of rows in X.
-    * Returns: None (modifies X in place). Prints error and frees X on failure.
-    */
-    int i, j;
-    /* Buffer to hold each line TODO handle bigger lengths*/
-    char line[1024];  
-    char *ptr;  
-    for (i = 0; i < n; i++){
-        fgets(line, sizeof(line), file);
-        ptr = line;
-        j = 0;
-        /*  Parse the comma-separated values in the line */
-        while (*ptr != '\0') {
-            if (sscanf(ptr, "%f", &X[i][j]) == 1){
-                while (*ptr != ',' && *ptr != '\0') {
-                    ptr++;
-                }
-                if (*ptr == ',') {
-                    ptr++; 
-                    j++;
-                }
-            }
-            else{
-                printf("An Error Has Occurred\n");
-                free_matrix_mem(X);
-                return; 
-            }
-        }
-    }
-}
-
 float** create_X(FILE* file, int n, int d){
     /*
     * Creates and initializes a matrix X from a txt file.
@@ -611,66 +574,6 @@ float** update_H(float** H, float** W, int n, int k) {
     return H_next;
 }
 
-
-float** update_Hold(float** H, float** W, int n, int k){
-    /*
-    * Updates the matrix H based on matrix factorization techniques using the 
-    * matrix W and intermediate calculations. The updated matrix H_next is 
-    * computed by first transposing H, performing matrix multiplications, 
-    * and then updating each element of H based on a formula involving the 
-    * inner product of W and HT.
-    * Parameters:
-    *   - H: Pointer to the matrix H (size n x k).
-    *   - W: Pointer to the matrix W (size n x k).
-    *   - n: The number of rows in matrix H and W.
-    *   - k: The number of columns in matrix H and W.
-    * Returns:
-    *   - Pointer to the updated matrix H_next (n x k).
-    */
-    int i, j;
-    float beta = 0.5;
-    float **HT, **H_HT, **H_HT_H, **H_next;
-    float W_H_ij;
-    HT = transpose(H, n, k);
-    if (HT == NULL){
-        free_matrix_mem(H);
-        return NULL;
-    } 
-    H_next = init_matrix_mem(n, k);
-    if (H_next == NULL){
-        free_matrix_mem(H);
-        free_matrix_mem(HT);
-        return NULL;
-    } 
-
-    H_HT = init_matrix_mem(n, k);
-    if (H_HT == NULL){
-        free_matrix_mem(H);
-        free_matrix_mem(HT);
-        return NULL;
-    } 
-    H_HT_H = init_matrix_mem(n, k);
-    if (H_HT_H == NULL){
-        free_matrix_mem(H);
-        free_matrix_mem(HT);
-        free_matrix_mem(H_next);
-        free_matrix_mem(H_HT);
-        return NULL;
-    } 
-    
-    mat_mult(n, k, n, H, HT, H_HT);
-    mat_mult(n, n, k, H_HT, H, H_HT_H);
-    for (i = 0; i < n; i++){
-        for (j = 0; j < k; j++){
-            W_H_ij = inner_prod(W[i], HT[j], k);
-            H_next[i][j] = H[i][j]*(1 - beta + beta*(W_H_ij/H_HT_H[i][j]));
-        }
-    }
-    free_matrix_mem(HT);
-    free_matrix_mem(H_HT);
-    free_matrix_mem(H_HT_H);
-    return H_next;
-}
 
 float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
     /*
