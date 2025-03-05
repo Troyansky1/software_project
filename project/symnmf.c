@@ -345,7 +345,7 @@ float** calc_similarity_matrix(float **X, int n, int d){
     int i, j;
     float ** A;
     A = init_matrix_mem(n, n);
-    if (A == NULL) return 0;
+    if (A == NULL) return NULL;
     for (i = 0; i < n; i++){
         for (j = 0; j < n; j++){
             if (i == j){
@@ -371,6 +371,7 @@ float* calc_diag_deg_vec(float **A, int n){
     int i, j;
     float d_i;
     float *D = init_vec_mem(n);
+    if (D == NULL) return NULL;
     for (i = 0; i < n; i++){
         d_i = 0;
         for (j = 0; j < n; j++){
@@ -411,6 +412,7 @@ float** calc_norm_sim_matrix(float **A, float *D, int n){
     */
     int i, j;
     float** W = init_matrix_mem(n, n);
+    if (W == NULL) return NULL;
     calc_inv_sqrt(D, n);
     for (i = 0; i < n; i++){        
         for (j = 0; j < n; j++){   
@@ -466,6 +468,7 @@ float** init_H(float **W, int k, int n){
     float** H = init_matrix_mem(n, k);
     int i;
     int j;
+    if (H == NULL) return NULL;
     for (i = 0; i < n; i++){
         for (j = 0; j < n; j++){
             H[i][j] = random_float_in_range(0, 2*sqrt(m/k));
@@ -484,8 +487,9 @@ float** transpose(float **H, int n, int k){
     * Returns:
     *   - Pointer to the transposed matrix.
     */
-    float **H_T = init_matrix_mem(k, n);
     int i, j;
+    float **H_T = init_matrix_mem(k, n);
+    if (H_T == NULL) return NULL;
     for (i = 0; i < n; i++){
         for (j = 0; j < k; j++){
             H_T[i][j] = H[j][i];
@@ -494,7 +498,7 @@ float** transpose(float **H, int n, int k){
     return H_T;
 }
 
-float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b){
+void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, float** prod){
     /*
     * Computes matrix multiplication.
     * Params:
@@ -502,14 +506,13 @@ float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_
     *   - a_cols: Number of columns in matrix a (equals to the number of rows in matrix b).
     *   - b_cols: Number of rows in matrix a.
     *   - mat_a: Pointer to the first matrix (a_rows * a_cols).
-    *   - mat_b: Pointer to the second matrix (a_cols * b_cols). .
+    *   - mat_b: Pointer to the second matrix (a_cols * b_cols). 
+    *   - prod: Pointer to the result matrix (a_rows * b_cols).
     * Returns:
-    *   - Pointer to the matrix multiplication.
+    *   - None
     */
-    float **prod;
     int i, j, l;
     float sum;
-    prod = init_matrix_mem(a_rows, b_cols);
     for (i = 0; i < a_rows; i++){
         for (j = 0; j < b_cols; j++){
             sum = 0;
@@ -519,7 +522,6 @@ float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_
             prod[i][j] = sum;
         }            
     }
-    return prod;
 }
 
 float inner_prod(float* vec_a, float *vec_b, int dim){
@@ -541,7 +543,76 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
     return prod;
 }
 
-float** update_H(float** H, float** W, int n, int k){
+
+int compute_intermediate_matrices(float** H, int n, int k, float*** HT, float*** H_HT, float*** H_HT_H) {
+    /*
+    * Allocates and computes intermediate matrices required for updating H.
+    * Parameters:
+    *   - H: Pointer to matrix H (size n x k).
+    *   - n: Number of rows in H.
+    *   - k: Number of columns in H.
+    *   - HT: Pointer to store the transposed matrix of H.
+    *   - H_HT: Pointer to store H * HT.
+    *   - H_HT_H: Pointer to store H_HT * H.
+    * Returns:
+    *   - 1 if successful, 0 if memory allocation fails.
+    */
+    *HT = transpose(H, n, k);
+    if (*HT == NULL) return 0;
+    *H_HT = init_matrix_mem(n, n);
+    if (*H_HT == NULL) {
+        free_matrix_mem(*HT);
+        return 0;
+    }
+    *H_HT_H = init_matrix_mem(n, k);
+    if (*H_HT_H == NULL) {
+        free_matrix_mem(*HT);
+        free_matrix_mem(*H_HT);
+        return 0;
+    }
+    mat_mult(n, k, n, H, *HT, *H_HT);
+    mat_mult(n, n, k, *H_HT, H, *H_HT_H);
+    return 1;
+}
+
+
+float** update_H(float** H, float** W, int n, int k) {
+    /*
+    * Updates matrix H using matrix factorization techniques.
+    * Parameters:
+    *   - H: Pointer to matrix H (size n x k).
+    *   - W: Pointer to matrix W (size n x k).
+    *   - n: Number of rows in H and W.
+    *   - k: Number of columns in H and W.
+    * Returns:
+    *   - Pointer to the updated matrix H_next (size n x k).
+    */
+    int i, j;
+    float beta = 0.5, W_H_ij;
+    float **HT, **H_HT, **H_HT_H, **H_next;
+    if (!compute_intermediate_matrices(H, n, k, &HT, &H_HT, &H_HT_H)) return NULL;
+    H_next = init_matrix_mem(n, k);
+    if (H_next == NULL) {
+        free_matrix_mem(HT);
+        free_matrix_mem(H_HT);
+        free_matrix_mem(H_HT_H);
+        return NULL;
+    }
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < k; j++) {
+            W_H_ij = inner_prod(W[i], HT[j], k);
+            /* update H(t) using the given rule */
+            H_next[i][j] = H[i][j] * (1 - beta + beta * (W_H_ij / H_HT_H[i][j]));
+        }
+    }
+    free_matrix_mem(HT);
+    free_matrix_mem(H_HT);
+    free_matrix_mem(H_HT_H);
+    return H_next;
+}
+
+
+float** update_Hold(float** H, float** W, int n, int k){
     /*
     * Updates the matrix H based on matrix factorization techniques using the 
     * matrix W and intermediate calculations. The updated matrix H_next is 
@@ -561,16 +632,43 @@ float** update_H(float** H, float** W, int n, int k){
     float **HT, **H_HT, **H_HT_H, **H_next;
     float W_H_ij;
     HT = transpose(H, n, k);
+    if (HT == NULL){
+        free_matrix_mem(H);
+        return NULL;
+    } 
     H_next = init_matrix_mem(n, k);
-    H_HT = mat_mult(n, k, n, H, HT);
-    H_HT_H = mat_mult(n, n, k, H_HT, H);
+    if (H_next == NULL){
+        free_matrix_mem(H);
+        free_matrix_mem(HT);
+        return NULL;
+    } 
+
+    H_HT = init_matrix_mem(n, k);
+    if (H_HT == NULL){
+        free_matrix_mem(H);
+        free_matrix_mem(HT);
+        return NULL;
+    } 
+    H_HT_H = init_matrix_mem(n, k);
+    if (H_HT_H == NULL){
+        free_matrix_mem(H);
+        free_matrix_mem(HT);
+        free_matrix_mem(H_next);
+        free_matrix_mem(H_HT);
+        return NULL;
+    } 
+    
+    mat_mult(n, k, n, H, HT, H_HT);
+    mat_mult(n, n, k, H_HT, H, H_HT_H);
     for (i = 0; i < n; i++){
         for (j = 0; j < k; j++){
             W_H_ij = inner_prod(W[i], HT[j], k);
             H_next[i][j] = H[i][j]*(1 - beta + beta*(W_H_ij/H_HT_H[i][j]));
         }
     }
-    /* free memory*/
+    free_matrix_mem(HT);
+    free_matrix_mem(H_HT);
+    free_matrix_mem(H_HT_H);
     return H_next;
 }
 
@@ -588,6 +686,9 @@ float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
     int i, j;
     float** sub;
     sub = init_matrix_mem(dim1, dim2);
+    if (sub == NULL){
+        return NULL;
+    }
     for (i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
             sub[i][j] = mat_a[i][j] - mat_b[i][j];
@@ -609,15 +710,19 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
     * Returns:
     *   - The Frobenius norm as a float.
     */
-    float** sub = mat_sub(n, k, H_next, H);
     int i, j;
     float norm = 0;
+    float** sub = mat_sub(n, k, H_next, H);
+    if (sub == NULL){
+        return -1;
+    }
     for (i = 0; i < n; i++){
         for (j = 0; j < k; j++){
             norm += pow(sub[i][j], 2);
         }
     }
     norm = sqrt(norm);
+    free_matrix_mem(sub);
     return norm;
 }
 
@@ -633,8 +738,12 @@ int check_convergence(float** H, float** H_next, int n, int k){
     * Returns:
     *   - 1 if convergence is reached (i.e., norm < eps).
     *   - 0 if convergence is not reached.
+    *   - -1 if there was an error.
     */
     float norm = calc_frob_norm(H, H_next, n, k);
+    if (norm < 0){
+        return -1;
+    }
     if (norm < eps){
         return 1;
     }
@@ -658,7 +767,20 @@ float** symnmf(float** W, float** H, int k, int n){
     int i = 0;  
     while (!convergence && i <= MAX_ITER){        
         H_next = update_H(H, W, n, k);
+        if (H_next == NULL){
+            free_matrix_mem(W);
+            free_matrix_mem(H);
+            printf("An Error Has Occurred\n");
+            return NULL;
+        }
         convergence = check_convergence(H, H_next, n, k);
+        if (convergence == -1){
+            free_matrix_mem(W);
+            free_matrix_mem(H);
+            free_matrix_mem(H_next);
+            printf("An Error Has Occurred\n");
+            return NULL;        
+        }
         i++;
     }
     return H_next;
@@ -676,7 +798,12 @@ void sym(float **X, int n, int d){
     */
     float ** A;
     A = calc_similarity_matrix(X, n, d);
+    if (A == NULL) {
+        printf("An Error Has Occurred\n");
+        return;
+    }
     print_matrix(A, n, n);
+    free_matrix_mem(A);
 }
 
 void ddg(float **X, int n, int d){
@@ -693,8 +820,19 @@ void ddg(float **X, int n, int d){
     float **A;
     float *D;
     A = calc_similarity_matrix(X, n, d);
+    if (A == NULL) {
+        printf("An Error Has Occurred\n");
+        return;
+    }
     D = calc_diag_deg_vec(A, n);
+    if (D == NULL) {
+        free_matrix_mem(A);
+        printf("An Error Has Occurred\n");
+        return;
+    }
     print_diag_matrix(D, n);
+    free_matrix_mem(A);
+    free(D);
 }
 
 void norm(float **X, int n, int d){
@@ -710,9 +848,27 @@ void norm(float **X, int n, int d){
     float * D;
     float **W, **A;
     A = calc_similarity_matrix(X, n, d);
-    D = calc_diag_deg_vec(A, n);    
+    if (A == NULL) {
+        printf("An Error Has Occurred\n");
+        return;
+    }
+    D = calc_diag_deg_vec(A, n);
+    if (D == NULL) {
+        free_matrix_mem(A);
+        printf("An Error Has Occurred\n");
+        return;
+    } 
     W = calc_norm_sim_matrix(A, D, n);
+    if (W == NULL) {
+        free_matrix_mem(A);
+        free(D);
+        printf("An Error Has Occurred\n");
+        return;
+    } 
     print_matrix(W, n, n);
+    free_matrix_mem(A);
+    free(D);
+    free_matrix_mem(W);
 }
 
 void derive_clustering_sol();
@@ -767,5 +923,6 @@ int main(int argc, char **argv){
     fclose(fp);
     goal = argv[1];
     run_goal(goal, X, n, d);
+    free_matrix_mem(X);
     return 1;
 }
