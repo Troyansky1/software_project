@@ -21,7 +21,6 @@ void print_matrix(float** matrix, int dim1, int dim2){
     * Returns:
     *   - None.
     */
-
     int i, j;
     for(i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
@@ -154,7 +153,94 @@ void get_matrix_params(int *n, int *d, FILE* file) {
     rewind(file);
 }
 
-void init_X(FILE* file, float** X, int n){
+
+char* read_line(FILE* file, size_t* buffer_size) {
+    /*
+    * Reads a line from a file and dynamically resizes memory if needed.
+    * Parameters:
+    *   - file: Open file pointer to read from.
+    *   - buffer_size: Pointer to the initial buffer size, updated if resized.
+    * Returns:
+    *   - Pointer to the dynamically allocated line (caller must free).
+    *   - NULL on allocation failure.
+    */
+    size_t len = 0;
+    char *line = (char*)malloc(*buffer_size * sizeof(char));
+    char *temp;
+    if (line == NULL) {
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
+    while (fgets(line + len, (int)(*buffer_size - len), file) != NULL) {
+        len = strlen(line);
+        if (line[len - 1] == '\n') break;
+        *buffer_size *= 2;
+        temp = (char*)realloc(line, *buffer_size);
+        if (temp == NULL) {
+            printf("An Error Has Occurred\n");
+            free(line);
+            return NULL;
+        }
+        line = temp;
+    }
+    return line;
+}
+
+
+int parse_line_to_array(char *line, float *row, int d) {
+    /*
+    * Parses a comma-separated string into an array of floats.
+    * Parameters:
+    *   - line: Input string containing comma-separated values.
+    *   - row: Array to store parsed float values.
+    *   - d: Expected number of values (columns).
+    * Returns:
+    *   - 1 if parsing is successful, 0 if an error occurs.
+    */
+    char *ptr = line;
+    int j = 0;
+    while (*ptr != '\0' && *ptr != '\n' && j < d) {
+        if (sscanf(ptr, "%f", &row[j]) == 1) {
+            while (*ptr != ',' && *ptr != '\0' && *ptr != '\n') ptr++;
+            if (*ptr == ',') ptr++;
+            j++;
+        } else {
+            return 0; 
+        }
+    }
+    return (j == d);
+}
+
+
+void init_X(FILE* file, float** X, int n, int d) {
+    /*
+    * Reads matrix values from a text file into X.
+    * Parameters:
+    *   - file: Open file pointer to read from.
+    *   - X: 2D float array (size n x d) to store parsed values.
+    *   - n: Number of rows in X.
+    *   - d: Number of columns in X.
+    * Returns:
+    *   - None (modifies X in place). Prints an error and frees X on failure.
+    */
+    int i;
+    size_t buffer_size = 128;
+    char *line;
+
+    for (i = 0; i < n; i++) {
+        line = read_line(file, &buffer_size);
+        if (line == NULL || !parse_line_to_array(line, X[i], d)) {
+            printf("An Error Has Occurred\n");
+            free(line);
+            free_matrix_mem(X);
+            return;
+        }
+        free(line);
+    }
+}
+
+
+void init_Xold(FILE* file, float** X, int n){
     /*
     * Reads matrix values from a txt file into X.
     * Params:
@@ -204,7 +290,7 @@ float** create_X(FILE* file, int n, int d){
     */
     float** X;    
     X = init_matrix_mem(n, d);
-    init_X(file, X, n);
+    init_X(file, X, n, d);
     return X;
 }
 
@@ -438,7 +524,7 @@ float** mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_
 
 float inner_prod(float* vec_a, float *vec_b, int dim){
     /*
-    * Computes the inner product (dot product) of two vectors `vec_a` and `vec_b` of size dim.
+    * Computes the inner product (dot product) of two vectors vec_a and vec_b of size dim.
     * Parameters:
     *   - vec_a: Pointer to the first vector (size dim).
     *   - vec_b: Pointer to the second vector (size dim).
@@ -457,18 +543,18 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
 
 float** update_H(float** H, float** W, int n, int k){
     /*
-    * Updates the matrix `H` based on matrix factorization techniques using the 
-    * matrix `W` and intermediate calculations. The updated matrix `H_next` is 
-    * computed by first transposing `H`, performing matrix multiplications, 
-    * and then updating each element of `H` based on a formula involving the 
-    * inner product of `W` and `HT`.
+    * Updates the matrix H based on matrix factorization techniques using the 
+    * matrix W and intermediate calculations. The updated matrix H_next is 
+    * computed by first transposing H, performing matrix multiplications, 
+    * and then updating each element of H based on a formula involving the 
+    * inner product of W and HT.
     * Parameters:
-    *   - H: Pointer to the matrix `H` (size n x k).
-    *   - W: Pointer to the matrix `W` (size n x k).
-    *   - n: The number of rows in matrix `H` and `W`.
-    *   - k: The number of columns in matrix `H` and `W`.
+    *   - H: Pointer to the matrix H (size n x k).
+    *   - W: Pointer to the matrix W (size n x k).
+    *   - n: The number of rows in matrix H and W.
+    *   - k: The number of columns in matrix H and W.
     * Returns:
-    *   - Pointer to the updated matrix `H_next` (size n x k).
+    *   - Pointer to the updated matrix H_next (n x k).
     */
     int i, j;
     float beta = 0.5;
@@ -538,10 +624,10 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
 int check_convergence(float** H, float** H_next, int n, int k){
     /*
     * Checks if the convergence condition has been met by comparing the Frobenius norm 
-    * of the difference between two matrices `H` and `H_next` to a predefined threshold `eps`.
+    * of the difference between two matrices H and H_next to a predefined threshold eps.
     * Parameters:
-    *   - H: Pointer to the matrix `H` (size n x k).
-    *   - H_next: Pointer to the matrix `H_next` (size n x k).
+    *   - H: Pointer to the matrix H (size n x k).
+    *   - H_next: Pointer to the matrix H_next (size n x k).
     *   - n: The number of rows in both matrices.
     *   - k: The number of columns in both matrices.
     * Returns:
@@ -580,7 +666,7 @@ float** symnmf(float** W, float** H, int k, int n){
 
 void sym(float **X, int n, int d){
     /*
-    *  Computes the similarity matrix A from the input matrix X and prints the resulting matrix A. 
+    * Computes the similarity matrix A from the input matrix X and prints the resulting matrix A. 
     * Parameters:
     *   - X: Pointer to the matrix X (n x d).
     *   - n: The number of data points (number of rows in the matrix X and number of rows and columns in matrix A).
@@ -634,7 +720,7 @@ void derive_clustering_sol();
 void run_goal(char* goal, float** X, int n, int d){
     /*
     * Executes a specific function based on the provided goal string. The function checks 
-    * the value of `goal` and calls the corresponding function: `sym`, `ddg`, or `norm`. 
+    * the value of goal and calls the corresponding function: sym, ddg, or norm. 
     * If the goal is not recognized, an error message is printed.
     * Parameters:
     *   - goal: A string indicating the goal to execute. It can be "sym", "ddg", or "norm".
