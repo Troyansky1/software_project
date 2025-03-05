@@ -8,6 +8,7 @@
 #define eps e-4
 #define MAX_ITER 300
 
+/* Might be worth putting all the prints, calcs and so on in a seperate file */
 
 void print_matrix(float** matrix, int dim1, int dim2){
     /*
@@ -121,7 +122,7 @@ void free_matrix_mem(float** matrix) {
     }
 }
 
-void get_matrix_params(int *n, int *d, FILE* file) {
+void get_matrix_params(int *n, int *d, FILE* file){
     /*
     * Parses a matrix file to count rows (n) and columns (d).
     * Params:
@@ -653,7 +654,7 @@ int check_convergence(float** H, float** H_next, int n, int k){
     return 0;
 }
 
-float** symnmf(float** W, float** H, int k, int n){
+float** run_symnmf(float** W, float** H, int k, int n){
     /*
     * Performs the symmetric non-negative matrix factorization algorithm 
     * Iterates until convergence is smaller than epsilon or until it reaches the max number of iterations.
@@ -689,7 +690,7 @@ float** symnmf(float** W, float** H, int k, int n){
     return H_next;
 }
 
-void sym(float **X, int n, int d){
+void run_sym(float **X, int n, int d){
     /*
     * Computes the similarity matrix A from the input matrix X and prints the resulting matrix A. 
     * Parameters:
@@ -709,7 +710,7 @@ void sym(float **X, int n, int d){
     free_matrix_mem(A);
 }
 
-void ddg(float **X, int n, int d){
+void run_ddg(float **X, int n, int d){
     /*
     * Computes the diagonal degree matrix D from the similarity matrix A, 
     * which is derived from the input matrix X. prints D at the end.
@@ -738,7 +739,7 @@ void ddg(float **X, int n, int d){
     free(D);
 }
 
-void norm(float **X, int n, int d){
+void run_norm(float **X, int n, int d){
     /*
  * Computes the normalized similarity matrix W from the input matrix X and prints it.
  * Parameters:
@@ -790,13 +791,13 @@ void run_goal(char* goal, float** X, int n, int d){
     *   - None.
     */
     if(strcmp(goal, "sym") == 0){
-        sym(X, n ,d);
+        run_sym(X, n ,d);
     }
     else if(strcmp(goal, "ddg") == 0){
-        ddg(X, n, d);
+        run_ddg(X, n, d);
     }
     else if (strcmp(goal, "norm") == 0){
-        norm(X, n, d);
+        run_norm(X, n, d);
     }
     else{
         printf("An Error Has Occurred\n");
