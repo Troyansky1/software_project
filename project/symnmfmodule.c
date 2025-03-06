@@ -2,70 +2,6 @@
 # include <Python.h>
 # include "symnmf.h"
 
-/* Might be worth putting getmatrix and getpd in a seperate file */
-
-static void sym(PyObject *self, PyObject *args){
-    PyObject *Py_X;
-    float **X;
-    int n, d;
-
-    if (!PyArg_ParseTuple(args, "O", &X)){
-        return NULL;
-    }
-    n = PyObject_Length(X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
-
-    X = getMatrix(Py_X, n, d);
-    run_sym(X, n, d);
-}
-
-static void ddg(PyObject *self, PyObject *args){
-    PyObject *Py_X;
-    float **X;
-    int n, d;
-
-    if (!PyArg_ParseTuple(args, "O", &X)){
-        return NULL;
-    }
-    n = PyObject_Length(X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
-    X = getMatrix(Py_X, n, d);
-    run_ddg(X, n, d);
-}
-
-static void norm(PyObject *self, PyObject *args){
-    PyObject *Py_X;
-    float **X;
-    int n, d;
-
-    if (!PyArg_ParseTuple(args, "O", &X)){
-        return NULL;
-    }
-    n = PyObject_Length(X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
-    X = getMatrix(Py_X, n, d);
-    run_norm(X, n, d);
-}
-
-static PyObject* symnmf(PyObject *self, PyObject *args){
-    PyObject *Py_H;
-    PyObject *Py_W;
-    PyObject *Py_final_H;
-    float **H;
-    float **W;
-    float **final_H;
-    int k;
-    int n;
-
-    if (!PyArg_ParseTuple(args, "OOi", &Py_H, &Py_W, &k)){
-        return NULL;
-    }
-    H = getMatrix(Py_H, n, n); /* TODO: getmatrix (translate pandas into matrix) */
-    W = getMatrix(Py_W, n, n);
-    n = PyObject_Length(Py_H);
-    final_H = run_symnmf(H, W, k, n);
-    Py_final_H = GetPD(final_H, k); /* TODO: getPD (translate matrix into pandas) */
-}
 
 static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     float **X;
@@ -78,8 +14,55 @@ static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     }
     return X;
 }
+
+/* Might be worth putting getmatrix and getpd in a seperate file */
+
+void sym(PyObject *self, PyObject *args){
+    PyObject *Py_X;
+    float **X;
+    int n, d;
+
+    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        return;
+    }
+    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type*/
+    n = PyObject_Length(Py_X);
+    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+
+    X = getMatrix(Py_X, n, d);
+    run_sym(X, n, d);
+}
+
+void ddg(PyObject *self, PyObject *args){
+    PyObject *Py_X;
+    float **X;
+    int n, d;
+
+    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        return;
+    }
+    n = PyObject_Length(Py_X);
+    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+    X = getMatrix(Py_X, n, d);
+    run_ddg(X, n, d);
+}
+
+void norm(PyObject *self, PyObject *args){
+    PyObject *Py_X;
+    float **X;
+    int n, d;
+
+    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        return;
+    }
+    n = PyObject_Length(Py_X);
+    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+    X = getMatrix(Py_X, n, d);
+    run_norm(X, n, d);
+}
+
  /* make this actually do the thing we want but this is a good skeleton */
-static PyObject* getPD(float **matrix, int dim1, int dim2){
+ static PyObject* getPD(float **matrix, int dim1, int dim2){
     PyObject *Py_DF;
     int i, j;
     Py_DF = PyList_New(dim1);
@@ -92,6 +75,29 @@ static PyObject* getPD(float **matrix, int dim1, int dim2){
     }
     return Py_DF;
 }
+
+
+PyObject* symnmf(PyObject *self, PyObject *args){
+    PyObject *Py_H;
+    PyObject *Py_W;
+    PyObject *Py_final_H;
+    float **H;
+    float **W;
+    float **final_H;
+    int k;
+    int n;
+
+    if (!PyArg_ParseTuple(args, "OOi", &Py_H, &Py_W, &k)){
+        return NULL;
+    }
+    n = PyObject_Length(Py_H);
+    H = getMatrix(Py_H, n, n); /* TODO: getmatrix (translate pandas into matrix) */
+    W = getMatrix(Py_W, n, n);
+    final_H = run_symnmf(H, W, k, n);
+    Py_final_H = getPD(final_H, n, k); /* TODO: getPD (translate matrix into pandas) */
+    return Py_final_H;
+}
+
 
 static PyMethodDef symnmfMethods[] = {
     {"sym",                   

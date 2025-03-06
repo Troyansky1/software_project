@@ -4,13 +4,23 @@
 
 /* Functions in symnmfmodule.c */
 
-static void sym(PyObject *self, PyObject *args);
+void sym(PyObject *self, PyObject *args);
 
-static void ddg(PyObject *self, PyObject *args);
+void ddg(PyObject *self, PyObject *args);
 
-static void norm(PyObject *self, PyObject *args);
+void norm(PyObject *self, PyObject *args);
 
-static PyObject* symnmf(PyObject *self, PyObject *args);
+PyObject* symnmf(PyObject *self, PyObject *args);
+
+float** init_matrix_mem(int dim1, int dim2);
+
+float** run_symnmf(float** W, float** H, int k, int n);
+
+void run_sym(float **X, int n, int d);
+
+void run_ddg(float **X, int n, int d);
+
+void run_norm(float **X, int n, int d);
 
 
 # endif
