@@ -16,16 +16,21 @@ def init_H(W, k, n):
     Returns:
       - Pandas DataFrame H.
     """
-    m = W.values.mean()
-    H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
-    return H
+    if isinstance(W, list):  # Convert list of lists to DataFrame
+        W = pd.DataFrame(W)
+        m = W.values.mean()
+        H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
+        return H
+    else:
+        pass
 
 
 def deploy(goal, X, k):
     if (goal == "symnmf"):
         W = snmf.norm(X)
-        H = init_H(W, k)
-        snmf.symnmf(H, W)
+        n = len(X)
+        H = init_H(W, k, n)
+        snmf.symnmf(H.values.tolist(), W, k)
     elif (goal == "sym"):
         snmf.sym(X)
     elif (goal == "ddg"):
@@ -41,8 +46,9 @@ def main(args):
         X = pd.read_csv(file_name, header=None)
     except IOError:
         print("An Error Has Occurred")
+        print("Error reading file in python")
         return
     print(X)
-    deploy(goal, X, k)
+    deploy(goal, X.values.tolist(), k)
 
 main(sys.argv)

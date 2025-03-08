@@ -6,7 +6,7 @@
 
 #define e 2.71828
 #define eps e-4
-#define MAX_ITER 300
+#define MAX_ITER 3
 
 /* Might be worth putting all the prints, calcs and so on in a seperate file */
 
@@ -364,7 +364,7 @@ void calc_inv_sqrt(float *D, int n){
 }
 
 
-float** calc_norm_sim_matrix(float **A, float *D, int n){
+void calc_norm_sim_matrix(float **W, float **A, float *D, int n){
     /*
     * Computes the normalized similarity matrix
     * Params:
@@ -375,15 +375,12 @@ float** calc_norm_sim_matrix(float **A, float *D, int n){
     *   - Pointer to the computed n x n norm similarity matrix.
     */
     int i, j;
-    float** W = init_matrix_mem(n, n);
-    if (W == NULL) return NULL;
     calc_inv_sqrt(D, n);
     for (i = 0; i < n; i++){        
         for (j = 0; j < n; j++){   
             W[i][j] = D[i]*A[i][j]*D[j];
         }
     }
-    return W;
 }
 
 float calc_m(float **W, int n){
@@ -453,10 +450,13 @@ float** transpose(float **H, int n, int k){
     */
     int i, j;
     float **H_T = init_matrix_mem(k, n);
-    if (H_T == NULL) return NULL;
-    for (i = 0; i < n; i++){
-        for (j = 0; j < k; j++){
-            H_T[i][j] = H[j][i];
+    if (H_T == NULL){
+        printf("An Error Has Occurred\n");
+        return NULL;
+    } 
+    for (j = 0; j < k; j++){
+        for (i = 0; i < n; i++){
+            H_T[j][i] = H[i][j];
         }
     }
     return H_T;
@@ -508,7 +508,7 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
 }
 
 
-int compute_intermediate_matrices(float** H, int n, int k, float*** HT, float*** H_HT, float*** H_HT_H) {
+int compute_intermediate_matrices(float** H, int n, int k, float** HT, float** H_HT, float** H_HT_H) {
     /*
     * Allocates and computes intermediate matrices required for updating H.
     * Parameters:
@@ -521,21 +521,9 @@ int compute_intermediate_matrices(float** H, int n, int k, float*** HT, float***
     * Returns:
     *   - 1 if successful, 0 if memory allocation fails.
     */
-    *HT = transpose(H, n, k);
-    if (*HT == NULL) return 0;
-    *H_HT = init_matrix_mem(n, n);
-    if (*H_HT == NULL) {
-        free_matrix_mem(*HT);
-        return 0;
-    }
-    *H_HT_H = init_matrix_mem(n, k);
-    if (*H_HT_H == NULL) {
-        free_matrix_mem(*HT);
-        free_matrix_mem(*H_HT);
-        return 0;
-    }
-    mat_mult(n, k, n, H, *HT, *H_HT);
-    mat_mult(n, n, k, *H_HT, H, *H_HT_H);
+    
+    mat_mult(n, k, n, H, HT, H_HT);
+    mat_mult(n, n, k, H_HT, H, H_HT_H);
     return 1;
 }
 
@@ -554,7 +542,20 @@ float** update_H(float** H, float** W, int n, int k) {
     int i, j;
     float beta = 0.5, W_H_ij;
     float **HT, **H_HT, **H_HT_H, **H_next;
-    if (!compute_intermediate_matrices(H, n, k, &HT, &H_HT, &H_HT_H)) return NULL;
+    HT = transpose(H, n, k);
+    if (HT == NULL) return 0;
+    H_HT = init_matrix_mem(n, n);
+    if (H_HT == NULL) {
+        free_matrix_mem(HT);
+        return 0;
+    }
+    H_HT_H = init_matrix_mem(n, k);
+    if (H_HT_H == NULL) {
+        free_matrix_mem(HT);
+        free_matrix_mem(H_HT);
+        return 0;
+    }
+    if (!compute_intermediate_matrices(H, n, k, HT, H_HT, H_HT_H)) return NULL;
     H_next = init_matrix_mem(n, k);
     if (H_next == NULL) {
         free_matrix_mem(HT);
@@ -669,7 +670,7 @@ float** run_symnmf(float** W, float** H, int k, int n){
     float **H_next; 
     int convergence = 0;
     int i = 0;  
-    while (!convergence && i <= MAX_ITER){        
+    while (!convergence && i <= MAX_ITER){   
         H_next = update_H(H, W, n, k);
         if (H_next == NULL){
             free_matrix_mem(W);
@@ -687,6 +688,7 @@ float** run_symnmf(float** W, float** H, int k, int n){
         }
         i++;
     }
+    print_matrix(H_next, n, k);
     return H_next;
 }
 
@@ -739,7 +741,7 @@ void run_ddg(float **X, int n, int d){
     free(D);
 }
 
-void run_norm(float **X, int n, int d){
+void run_norm(float **W, float **X, int n, int d){
     /*
  * Computes the normalized similarity matrix W from the input matrix X and prints it.
  * Parameters:
@@ -750,7 +752,7 @@ void run_norm(float **X, int n, int d){
  *   - None.
  */
     float * D;
-    float **W, **A;
+    float **A;
     A = calc_similarity_matrix(X, n, d);
     if (A == NULL) {
         printf("An Error Has Occurred\n");
@@ -762,7 +764,7 @@ void run_norm(float **X, int n, int d){
         printf("An Error Has Occurred\n");
         return;
     } 
-    W = calc_norm_sim_matrix(A, D, n);
+    calc_norm_sim_matrix(W, A, D, n);
     if (W == NULL) {
         free_matrix_mem(A);
         free(D);
@@ -772,7 +774,6 @@ void run_norm(float **X, int n, int d){
     print_matrix(W, n, n);
     free_matrix_mem(A);
     free(D);
-    free_matrix_mem(W);
 }
 
 void derive_clustering_sol();
@@ -797,10 +798,16 @@ void run_goal(char* goal, float** X, int n, int d){
         run_ddg(X, n, d);
     }
     else if (strcmp(goal, "norm") == 0){
-        run_norm(X, n, d);
+        float** W = init_matrix_mem(n, n);
+        if (W == NULL){
+            printf("An Error Has Occurred\n");
+            return;
+        }
+        run_norm(W, X, n, d);
     }
     else{
         printf("An Error Has Occurred\n");
+        printf("Wrong goal name\n");
     }
 }
 
@@ -811,16 +818,19 @@ int main(int argc, char **argv){
     FILE *fp;
     if (argc != 3){
         printf("An Error Has Occurred\n");
+        printf("Wrong num of arguments\n");
         return 0;
     }
     fp = fopen(argv[2],"r");
     if (fp == NULL){
         printf("An Error Has Occurred\n");
+        printf("can't open file\n");
         return 0;
     }
     get_matrix_params(&n, &d, fp);
     if (n <= 0 || d <= 0){
         printf("An Error Has Occurred\n");
+        printf("n <= 0 || d <= 0\n");
         return 0; 
     }
     X = create_X(fp, n, d);
