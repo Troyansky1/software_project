@@ -19,6 +19,7 @@ def init_H(W, k, n):
     if isinstance(W, list):  # Convert list of lists to DataFrame
         W = pd.DataFrame(W)
         m = W.values.mean()
+        print(W)
         H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
         return H
     else:
@@ -48,7 +49,6 @@ def main(args):
         print("An Error Has Occurred")
         print("Error reading file in python")
         return
-    print(X)
     deploy(goal, X.values.tolist(), k)
 
 main(sys.argv)

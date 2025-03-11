@@ -4,8 +4,7 @@
 # include <math.h>
 # include "symnmf.h"
 
-#define e 2.71828
-#define eps e-4
+#define eps 0.0001
 #define MAX_ITER 3
 
 /* Might be worth putting all the prints, calcs and so on in a seperate file */
@@ -23,13 +22,15 @@ void print_matrix(float** matrix, int dim1, int dim2){
     *   - None.
     */
     int i, j;
+    printf("------------------\n");
     for(i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
-            printf("%.4f", matrix[i][j]);
+            printf("%.8f", matrix[i][j]);
             if (j < dim2 -1) printf("%c", ',');
             else printf("%c", '\n');
         }
     }
+    printf("------------------\n");
 }
 
 void print_diag_matrix(float* vector, int dim){
@@ -483,9 +484,14 @@ void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, 
             for (l = 0; l < a_cols; l++){
                 sum += mat_a[i][l] * mat_b[l][j];
             }
-            prod[i][j] = sum;
+            prod[i][j] = sum;            
         }            
     }
+    /*
+    printf("_______mat mult_______\n");
+    print_matrix(prod, a_rows, b_cols);
+    printf("\n\n");
+    */
 }
 
 float inner_prod(float* vec_a, float *vec_b, int dim){
@@ -547,13 +553,13 @@ float** update_H(float** H, float** W, int n, int k) {
     H_HT = init_matrix_mem(n, n);
     if (H_HT == NULL) {
         free_matrix_mem(HT);
-        return 0;
+        return NULL;
     }
     H_HT_H = init_matrix_mem(n, k);
     if (H_HT_H == NULL) {
         free_matrix_mem(HT);
         free_matrix_mem(H_HT);
-        return 0;
+        return NULL;
     }
     if (!compute_intermediate_matrices(H, n, k, HT, H_HT, H_HT_H)) return NULL;
     H_next = init_matrix_mem(n, k);
@@ -565,8 +571,8 @@ float** update_H(float** H, float** W, int n, int k) {
     }
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
-            W_H_ij = inner_prod(W[i], HT[j], k);
-            /* update H(t) using the given rule */
+            W_H_ij = inner_prod(W[i], HT[j], k);            
+            /* update H(t) using the given rule */         
             H_next[i][j] = H[i][j] * (1 - beta + beta * (W_H_ij / H_HT_H[i][j]));
         }
     }
@@ -646,6 +652,7 @@ int check_convergence(float** H, float** H_next, int n, int k){
     *   - -1 if there was an error.
     */
     float norm = calc_frob_norm(H, H_next, n, k);
+    printf("norm = %f\n", norm);
     if (norm < 0){
         return -1;
     }
@@ -687,8 +694,10 @@ float** run_symnmf(float** W, float** H, int k, int n){
             return NULL;        
         }
         i++;
+        free_matrix_mem(H);
+        H = H_next;
     }
-    print_matrix(H_next, n, k);
+    print_matrix(H_next, n, n);
     return H_next;
 }
 
@@ -771,7 +780,9 @@ void run_norm(float **W, float **X, int n, int d){
         printf("An Error Has Occurred\n");
         return;
     } 
+    /* 
     print_matrix(W, n, n);
+    */
     free_matrix_mem(A);
     free(D);
 }
