@@ -2,7 +2,7 @@ import math
 import sys
 import numpy as np
 import pandas as pd
-import symnmf as snmf
+import symnmfmodule as snmf
 
 np.random.seed(1234)
 
@@ -31,7 +31,7 @@ def deploy(goal, X, k):
         W = snmf.norm(X)
         n = len(X)
         H = init_H(W, k, n)
-        snmf.symnmf(H.values.tolist(), W, k)
+        snmf.symnmf(H.values.tolist(), W, k, 1)
     elif (goal == "sym"):
         snmf.sym(X)
     elif (goal == "ddg"):

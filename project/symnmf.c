@@ -5,7 +5,7 @@
 # include "symnmf.h"
 
 #define eps 0.0001
-#define MAX_ITER 3
+#define MAX_ITER 300
 
 /* Might be worth putting all the prints, calcs and so on in a seperate file */
 
@@ -652,7 +652,6 @@ int check_convergence(float** H, float** H_next, int n, int k){
     *   - -1 if there was an error.
     */
     float norm = calc_frob_norm(H, H_next, n, k);
-    printf("norm = %f\n", norm);
     if (norm < 0){
         return -1;
     }
@@ -662,7 +661,7 @@ int check_convergence(float** H, float** H_next, int n, int k){
     return 0;
 }
 
-float** run_symnmf(float** W, float** H, int k, int n){
+float** run_symnmf(float** W, float** H, int k, int n, int print){
     /*
     * Performs the symmetric non-negative matrix factorization algorithm 
     * Iterates until convergence is smaller than epsilon or until it reaches the max number of iterations.
@@ -671,6 +670,7 @@ float** run_symnmf(float** W, float** H, int k, int n){
     *   - H: Pointer to the matrix H (n x k).
     *   - k: The number of columns in matrix H (and matrix W).
     *   - n: The number of rows in matrix H (and matrix W).
+    *   - print: A boolean indicating whether to print the matrix(1) or not(0)
     * Returns:
     *   - Pointer to the updated matrix H_next (n x k).
     */
@@ -697,7 +697,7 @@ float** run_symnmf(float** W, float** H, int k, int n){
         free_matrix_mem(H);
         H = H_next;
     }
-    print_matrix(H_next, n, n);
+    if (print) print_matrix(H_next, n, n);
     return H_next;
 }
 
@@ -787,7 +787,21 @@ void run_norm(float **W, float **X, int n, int d){
     free(D);
 }
 
-void derive_clustering_sol();
+float* derive_clustering_sol(float** H, int n, int k){
+    int i, j;
+    float max;
+    float* hard_clustering = init_vec_mem(n);
+    for (i = 0; i < n; i++){
+        max = 0;
+        for (j = 0; j < k; j++){
+            if (H[i][j] > max){
+                max = H[i][j];
+                hard_clustering[i] = j;
+            }
+        }
+    }
+    return hard_clustering;
+}
 
 void run_goal(char* goal, float** X, int n, int d){
     /*
