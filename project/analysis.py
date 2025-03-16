@@ -4,12 +4,40 @@ import numpy as np
 import pandas as pd
 import symnmf as snmf
 
+def derive_clustering_sol(H):
+    """
+    Derive the clustering solution from H.
+    Params:
+      - H: Pandas DataFrame of the cluster assignments.
+    Returns:
+      - List of cluster assignments.
+    """
+    return H.idxmax(axis=0)
+
+def sol_to_clusters(clustering_sol, data_points):
+    """
+    Convert the clustering solution to a list of clusters.
+    Params:
+      - clustering_sol: List of cluster assignments.
+      - data_points: Pandas DataFrame of the data points.
+    Returns:
+      - List of clusters.
+    """
+    #print(data_points)
+    #print(clustering_sol)
+    clusters = []
+    for i in range(len(clustering_sol)):
+        cluster_num = clustering_sol[i]
+        cluster = [data_points[j] for j in range(len(data_points)) if clustering_sol[j] == cluster_num]
+        clusters.append(cluster)
+    return clusters
 
 def calc_mean_dist(data_point, cluster):
     dist_list = []
     for pnt in cluster:
-        if pnt != data_point:
-            dist_list.append(np.linalg.norm(data_point - pnt))
+        dist = np.linalg.norm(data_point - pnt)
+        if dist != 0:
+            dist_list.append(dist)
     dist_vec = np.array(dist_list)
     return np.mean(dist_vec)
 
@@ -25,7 +53,7 @@ def calc_silhouette(data_point, cluster, other_clusters):
     b = calc_min_mean_dist(data_point, other_clusters)
     return (b-a)/max(a,b)
 
-
+"""
 def calc_score_symnmf(data_points, clustering_sol, clusters):
     coeff_list = []
     for idx, pnt in enumerate(data_points):
@@ -35,6 +63,16 @@ def calc_score_symnmf(data_points, clustering_sol, clusters):
         coeff_list.append(calc_silhouette(pnt, cluster, other_clusters))
     coeff_list = np.array(coeff_list)
     return np.mean(coeff_list)
+"""
+
+def calc_score_symnmf(clusters):
+    coeff_list = []
+    for cluster in clusters:
+        for pnt in cluster:
+            other_clusters = [clust for clust in clusters if clust != cluster]
+            coeff_list.append(calc_silhouette(pnt, cluster, other_clusters))
+    coeff_list = np.array(coeff_list)
+    return np.mean(coeff_list)
 
 def calc_score_kmneans(input_file_path, k):
     pass
@@ -42,8 +80,11 @@ def calc_score_kmneans(input_file_path, k):
 
 def compare(data_points, k):
     centroids = run_kmeans(k, data_points.values.tolist(), iter=300)
-    clusters = run_symnmf(k, data_points.values.tolist())
-    print(calc_score_symnmf(data_points, clustering_sol, clusters))
+    H = run_symnmf(k, data_points.values.tolist())
+    H = pd.DataFrame(H)
+    clustering_sol = derive_clustering_sol(H)
+    clusters = sol_to_clusters(clustering_sol, data_points)
+    print(calc_score_symnmf(clusters))
 
 
 def init_centroids(K, X):
@@ -106,7 +147,7 @@ def run_kmeans(K, datapoints, iter):
         j = j + 1
     return centroids
 
-def init_H(W, k, n):
+def init_H(W, n, k):
     """
     Randomly initialize H with values from the interval [0, 2 ∗ sqrt(m/k)].
     Params:
@@ -119,7 +160,6 @@ def init_H(W, k, n):
     if isinstance(W, list):  # Convert list of lists to DataFrame
         W = pd.DataFrame(W)
         m = W.values.mean()
-        print(W)
         H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
         return H
     else:
@@ -128,9 +168,9 @@ def init_H(W, k, n):
 def run_symnmf(k, X):
     W = snmf.norm(X)
     n = len(X)
-    H = init_H(W, k, n)
+    H = init_H(W, n, k)
     H = snmf.symnmf(H.values.tolist(), W, k, 0)
-    return snmf.clustering_sol(H, W, k)
+    return H
 
 def main(args):
     k, file_name = args[1:]

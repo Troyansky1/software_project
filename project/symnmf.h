@@ -22,7 +22,7 @@ void run_sym(float **X, int n, int d);
 
 void run_ddg(float **X, int n, int d);
 
-void run_norm(float **W, float **X, int n, int d);
+float** run_norm(float **W, float **X, int n, int d);
 
 float* derive_clustering_sol(float** H, int n, int k);
 

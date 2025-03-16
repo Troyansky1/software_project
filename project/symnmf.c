@@ -508,7 +508,7 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
     int i;
     prod = 0;
     for (i = 0; i < dim; i++){
-        prod+= vec_a[i] * vec_b[i];
+        prod += vec_a[i] * vec_b[i];
     }
     return prod;
 }
@@ -571,7 +571,7 @@ float** update_H(float** H, float** W, int n, int k) {
     }
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
-            W_H_ij = inner_prod(W[i], HT[j], k);            
+            W_H_ij = inner_prod(W[i], H[j], k);
             /* update H(t) using the given rule */         
             H_next[i][j] = H[i][j] * (1 - beta + beta * (W_H_ij / H_HT_H[i][j]));
         }
@@ -632,7 +632,6 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
             norm += pow(sub[i][j], 2);
         }
     }
-    norm = sqrt(norm);
     free_matrix_mem(sub);
     return norm;
 }
@@ -677,7 +676,7 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
     float **H_next; 
     int convergence = 0;
     int i = 0;  
-    while (!convergence && i <= MAX_ITER){   
+    while (!convergence && i <= MAX_ITER){  
         H_next = update_H(H, W, n, k);
         if (H_next == NULL){
             free_matrix_mem(W);
@@ -697,7 +696,7 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
         free_matrix_mem(H);
         H = H_next;
     }
-    if (print) print_matrix(H_next, n, n);
+    if (print) print_matrix(H_next, n, k);
     return H_next;
 }
 
@@ -750,7 +749,7 @@ void run_ddg(float **X, int n, int d){
     free(D);
 }
 
-void run_norm(float **W, float **X, int n, int d){
+float** run_norm(float **W, float **X, int n, int d){
     /*
  * Computes the normalized similarity matrix W from the input matrix X and prints it.
  * Parameters:
@@ -765,26 +764,25 @@ void run_norm(float **W, float **X, int n, int d){
     A = calc_similarity_matrix(X, n, d);
     if (A == NULL) {
         printf("An Error Has Occurred\n");
-        return;
+        return NULL;
     }
     D = calc_diag_deg_vec(A, n);
     if (D == NULL) {
         free_matrix_mem(A);
         printf("An Error Has Occurred\n");
-        return;
+        return NULL;
     } 
     calc_norm_sim_matrix(W, A, D, n);
     if (W == NULL) {
         free_matrix_mem(A);
         free(D);
         printf("An Error Has Occurred\n");
-        return;
+        return NULL;
     } 
-    /* 
-    print_matrix(W, n, n);
-    */
+    /* print_matrix(W, n, n); */
     free_matrix_mem(A);
     free(D);
+    return W;
 }
 
 float* derive_clustering_sol(float** H, int n, int k){
