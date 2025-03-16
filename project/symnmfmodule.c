@@ -17,17 +17,6 @@ static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     return X;
 }
 
- static PyObject* getVector(float *vec, int dim){
-    PyObject *Py_vec;
-    int i;
-    Py_vec = PyList_New(dim);
-    for (i = 0; i < dim; i++){
-        PyList_SetItem(Py_vec, i, PyFloat_FromDouble(vec[i]));        
-    }
-    return Py_vec;
-}
-
-
 PyObject *sym(PyObject *self, PyObject *args){
     PyObject *Py_X;
     float **X;
@@ -171,29 +160,6 @@ PyObject* symnmf(PyObject *self, PyObject *args){
     return Py_final_H;
 }
 
-PyObject* clustering_sol(PyObject *self,PyObject *args){
-    PyObject *Py_H;
-    PyObject *Py_W;
-    PyObject *Py_sol;
-    float **H;
-    float **W;
-    float **final_H;
-    float *sol;
-    int k;
-    int n;
-
-    if (!PyArg_ParseTuple(args, "OOi", &Py_H, &Py_W, &k)){
-        return NULL;
-    }
-    n = PyObject_Length(Py_H);
-    H = getMatrix(Py_H, n, k); /* TODO: getmatrix (translate pandas into matrix) */
-    W = getMatrix(Py_W, n, n);
-    final_H = run_symnmf(H, W, k, n, 1);
-    sol = derive_clustering_sol(final_H, n, k);
-    Py_sol = getVector(sol, n);
-    return Py_sol;
-}
-
 
 static PyMethodDef symnmfMethods[] = {
     {"sym",                   
@@ -220,10 +186,6 @@ static PyMethodDef symnmfMethods[] = {
       (PyCFunction) getDF,
       METH_VARARGS,         
       PyDoc_STR("")},
-    {"clustering_sol",
-    (PyCFunction) clustering_sol,
-    METH_VARARGS,         
-    PyDoc_STR("")},
     {NULL, NULL, 0, NULL}     
 };
 

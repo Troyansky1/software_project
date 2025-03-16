@@ -54,7 +54,6 @@ def main(args):
         print("An Error Has Occurred")
         print("Error reading file in python")
         return
-    #print(X)
     deploy(goal, X.values.tolist(), k)
 
 main(sys.argv)

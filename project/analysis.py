@@ -12,7 +12,7 @@ def derive_clustering_sol(H):
     Returns:
       - List of cluster assignments.
     """
-    return H.idxmax(axis=0)
+    return H.idxmax(axis=1)
 
 def sol_to_clusters(clustering_sol, data_points):
     """
@@ -82,7 +82,8 @@ def compare(data_points, k):
     centroids = run_kmeans(k, data_points.values.tolist(), iter=300)
     H = run_symnmf(k, data_points.values.tolist())
     H = pd.DataFrame(H)
-    clustering_sol = derive_clustering_sol(H)
+    clustering_sol = derive_clustering_sol(H).tolist()
+    print(clustering_sol)
     clusters = sol_to_clusters(clustering_sol, data_points)
     print(calc_score_symnmf(clusters))
 
