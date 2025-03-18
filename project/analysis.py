@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import symnmf as snmf
 
+
+np.random.seed(1234)
+
 def derive_clustering_sol(H):
     """
     Derive the clustering solution from H.
@@ -80,12 +83,15 @@ def calc_score_kmneans(input_file_path, k):
 
 def compare(data_points, k):
     centroids = run_kmeans(k, data_points.values.tolist(), iter=300)
+    run_symnmf(k, data_points.values.tolist())
+    """
     H = run_symnmf(k, data_points.values.tolist())
     H = pd.DataFrame(H)
     clustering_sol = derive_clustering_sol(H).tolist()
     print(clustering_sol)
     clusters = sol_to_clusters(clustering_sol, data_points)
     print(calc_score_symnmf(clusters))
+    """
 
 
 def init_centroids(K, X):
@@ -170,8 +176,8 @@ def run_symnmf(k, X):
     W = snmf.norm(X)
     n = len(X)
     H = init_H(W, n, k)
-    H = snmf.symnmf(H.values.tolist(), W, k, 0)
-    return H
+    snmf.symnmf(H.values.tolist(), W, k, 1)
+    # return H
 
 def main(args):
     k, file_name = args[1:]

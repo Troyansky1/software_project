@@ -156,7 +156,7 @@ PyObject* symnmf(PyObject *self, PyObject *args){
     H = getMatrix(Py_H, n, k); /* TODO: getmatrix (translate pandas into matrix) */
     W = getMatrix(Py_W, n, n);
     final_H = run_symnmf(W, H, k, n, print);
-    Py_final_H = getDF(final_H, n, k); /* TODO: getDF (translate matrix into pandas) */
+    Py_final_H = matrix_to_pyobject(final_H, n, k); /* TODO: getDF (translate matrix into pandas) */
     return Py_final_H;
 }
 

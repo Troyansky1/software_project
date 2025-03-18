@@ -34,7 +34,7 @@ def deploy(goal, X, k):
         W = snmf.norm(X)
         n = len(X)
         H = init_H(W, n, k)
-        snmf.symnmf(H.values.tolist(), W, k, 1)
+        snmf.symnmf(H.values.tolist(), W, k, 0)
     elif (goal == "sym"):
         snmf.sym(X)
     elif (goal == "ddg"):
