@@ -15,23 +15,22 @@ def derive_clustering_sol(H):
     Returns:
       - List of cluster assignments.
     """
-    return H.idxmax(axis=1)
+    pd_H = pd.DataFrame(H)
+    return pd_H.idxmax(axis=1)
 
-def sol_to_clusters(clustering_sol, data_points):
+def sol_to_clusters(clustering_sol, data_points, num_clusters):
     """
     Convert the clustering solution to a list of clusters.
     Params:
       - clustering_sol: List of cluster assignments.
-      - data_points: Pandas DataFrame of the data points.
+      - data_points: np array of the data points.
     Returns:
       - List of clusters.
     """
-    #print(data_points)
     #print(clustering_sol)
     clusters = []
-    for i in range(len(clustering_sol)):
-        cluster_num = clustering_sol[i]
-        cluster = [data_points[j] for j in range(len(data_points)) if clustering_sol[j] == cluster_num]
+    for i in range(num_clusters):
+        cluster = [data_points[j] for j in range(len(data_points)) if clustering_sol[j] == i]
         clusters.append(cluster)
     return clusters
 
@@ -82,16 +81,16 @@ def calc_score_kmneans(input_file_path, k):
 
 
 def compare(data_points, k):
-    centroids = run_kmeans(k, data_points.values.tolist(), iter=300)
-    run_symnmf(k, data_points.values.tolist())
-    """
-    H = run_symnmf(k, data_points.values.tolist())
-    H = pd.DataFrame(H)
-    clustering_sol = derive_clustering_sol(H).tolist()
-    print(clustering_sol)
-    clusters = sol_to_clusters(clustering_sol, data_points)
-    print(calc_score_symnmf(clusters))
-    """
+    centroids, cents_to_dots_map = run_kmeans(k, data_points, iter=300)
+    centroids = np.array(centroids)
+    print("centroids = ", centroids)
+    print(cents_to_dots_map)
+    final_H = run_symnmf(k, data_points)
+    clustering_sol = derive_clustering_sol(final_H).tolist()
+    clusters = sol_to_clusters(clustering_sol, data_points, k)
+    print("clusters = ", clusters)
+    # print(calc_score_symnmf(clusters))
+
 
 
 def init_centroids(K, X):
@@ -119,8 +118,9 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
 
 def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
-        all_coords = np.array(cent_to_dots_map[i])
-        centroids[i] = np.mean(all_coords, axis=0)
+        all_coords = np.array(cent_to_dots_map[i])        
+        if (len(all_coords) != 0):
+            centroids[i] = np.mean(all_coords, axis=0)
 
 def clear(cent_to_dots_map):
     for key in cent_to_dots_map:
@@ -132,6 +132,9 @@ def convergence(centroids, prev, eps):
         if (delta_mu >= eps):
             return False
     return True
+
+def convert_to_list(arrays):
+    return [arr.tolist() if isinstance(arr, np.ndarray) else arr for arr in arrays]
 
 def run_kmeans(K, datapoints, iter):
     eps = 0.0001
@@ -152,7 +155,8 @@ def run_kmeans(K, datapoints, iter):
         update_centroids(centroids, cent_to_dots_map)
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
-    return centroids
+    
+    return convert_to_list(centroids), cent_to_dots_map
 
 def init_H(W, n, k):
     """
@@ -176,8 +180,8 @@ def run_symnmf(k, X):
     W = snmf.norm(X)
     n = len(X)
     H = init_H(W, n, k)
-    snmf.symnmf(H.values.tolist(), W, k, 1)
-    # return H
+    H_next = snmf.symnmf(H.values.tolist(), W, k, 0)
+    return H_next
 
 def main(args):
     k, file_name = args[1:]
@@ -188,6 +192,6 @@ def main(args):
         print("An Error Has Occurred")
         print("Error reading file in python")
         return
-    compare(X, k)
+    compare(X.values.tolist(), k)
 
 main(sys.argv)
