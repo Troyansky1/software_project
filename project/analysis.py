@@ -3,6 +3,7 @@ import sys
 import numpy as np
 import pandas as pd
 import symnmf as snmf
+from sklearn.metrics import silhouette_score
 
 
 np.random.seed(1234)
@@ -72,17 +73,6 @@ def calc_score_kmneans(input_file_path, k):
     pass
 
 
-def compare(data_points, k):
-    centroids, cents_to_dots_map = run_kmeans(k, data_points, iter=300)
-    centroids = np.array(centroids)
-    #print("centroids = ", centroids)
-    #print(cents_to_dots_map)
-    final_H = run_symnmf(k, data_points)
-    clustering_sol = derive_clustering_sol(final_H).tolist()
-    clusters = sol_to_clusters(clustering_sol, data_points, k)
-    # print("clusters = ", clusters)
-    print("score: ", calc_score_symnmf(clusters))
-
 
 def init_centroids(K, X):
     centroids = []
@@ -105,7 +95,7 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
             min_dist = dist
             min_cent = j
     cent_to_dots_map[min_cent].append(vec_xi)
-    dot_to_cent_map[i] = centroids[min_cent]
+    dot_to_cent_map[i] = min_cent
 
 def update_centroids(centroids, cent_to_dots_map):
     for i in range(len(centroids)):
@@ -133,7 +123,7 @@ def run_kmeans(K, datapoints, iter):
     cent_to_dots_map = {}
     for i in range(len(centroids)):
         cent_to_dots_map[i] = []
-    dot_to_cent_map = {}
+    dot_to_cent_map = [_ for _ in range(len(datapoints))]
     conv_flag = False
     j = 0
     while ((not conv_flag) and (j < iter)):
@@ -147,7 +137,7 @@ def run_kmeans(K, datapoints, iter):
         conv_flag = convergence(centroids, prev, eps)
         j = j + 1
     
-    return convert_to_list(centroids), cent_to_dots_map
+    return convert_to_list(centroids), dot_to_cent_map
 
 def init_H(W, n, k):
     """
@@ -173,6 +163,19 @@ def run_symnmf(k, X):
     H = init_H(W, n, k)
     H_next = snmf.symnmf(H.values.tolist(), W, k, 0)
     return H_next
+
+
+def compare(data_points, k):
+    centroids, dots_to_cents_map = run_kmeans(k, data_points, iter=300)
+    centroids = np.array(centroids)
+    final_H = run_symnmf(k, data_points)
+    clustering_sol = derive_clustering_sol(final_H).tolist()
+    print("clustering_sol:", clustering_sol)
+    nmf_score = silhouette_score(data_points, clustering_sol)
+    kmeans_score = silhouette_score(data_points, dots_to_cents_map)
+    print("nmf: ", nmf_score)
+    print("kmeans: ", kmeans_score)
+
 
 def main(args):
     k, file_name = args[1:]
