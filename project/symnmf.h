@@ -22,6 +22,6 @@ void run_sym(float **X, int n, int d);
 
 void run_ddg(float **X, int n, int d);
 
-float** run_norm(float **W, float **X, int n, int d);
+float** run_norm(float **W, float **X, int n, int d, int print);
 
 # endif

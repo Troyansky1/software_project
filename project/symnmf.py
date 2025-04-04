@@ -31,7 +31,7 @@ def init_H(W, n, k):
 
 def deploy(goal, X, k):
     if (goal == "symnmf"):
-        W = snmf.norm(X)
+        W = snmf.norm(X, 0)
         n = len(X)
         H = init_H(W, n, k)
         snmf.symnmf(H.values.tolist(), W, k, 0)
@@ -40,9 +40,8 @@ def deploy(goal, X, k):
     elif (goal == "ddg"):
           snmf.ddg(X)
     elif (goal == "norm"):
-        W = snmf.norm(X)
-        W = pd.DataFrame(W)
-        print(W)
+        W = snmf.norm(X, 1)
+        
     return
 
 def main(args):

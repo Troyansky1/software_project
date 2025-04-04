@@ -81,28 +81,12 @@ PyObject *norm(PyObject *self, PyObject *args){
     PyObject *Py_X;
     float **X;
     int n, d;
-    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+    int print;
+    if (!PyArg_ParseTuple(args, "Oi", &Py_X, &print)){
         printf("Error: PyArg_ParseTuple\n");
         return NULL;
     }
-    if (!PyList_Check(Py_X)) {
-        printf("Error: Py_X is not a list\n");
-        return NULL;
-    }
-    n = PyObject_Length(Py_X);
-    if (n < 1) {
-        printf("Error: Py_X is empty\n");
-        return NULL;
-    }
     PyObject* first_row = PyList_GetItem(Py_X, 0);
-    if (!first_row) {
-        printf("Error: Failed to get first item from Py_X\n");
-        return NULL;
-    }
-    if (!PyList_Check(first_row)) {
-        printf("Error: First item in Py_X is not a list\n");
-        return NULL;
-    }
     d = PyObject_Length(first_row);
     if (d < 1) {
         printf("Error: First row is empty\n");
@@ -118,7 +102,7 @@ PyObject *norm(PyObject *self, PyObject *args){
         printf("Error: init_matrix_mem failed\n");
         return NULL;
     } 
-    run_norm(W, X, n, d); 
+    run_norm(W, X, n, d, print); 
     return matrix_to_pyobject(W, n, n);
 }
 

@@ -749,7 +749,7 @@ void run_ddg(float **X, int n, int d){
     free(D);
 }
 
-float** run_norm(float **W, float **X, int n, int d){
+float** run_norm(float **W, float **X, int n, int d, int print){
     /*
  * Computes the normalized similarity matrix W from the input matrix X and prints it.
  * Parameters:
@@ -779,9 +779,12 @@ float** run_norm(float **W, float **X, int n, int d){
         printf("An Error Has Occurred\n");
         return NULL;
     } 
-    /* print_matrix(W, n, n); */
+    if (print == 1){
+        print_matrix(W, n, n); 
+    }
     free_matrix_mem(A);
     free(D);
+
     return W;
 }
 
@@ -826,7 +829,7 @@ void run_goal(char* goal, float** X, int n, int d){
             printf("An Error Has Occurred\n");
             return;
         }
-        run_norm(W, X, n, d);
+        run_norm(W, X, n, d, 0);
     }
     else{
         printf("An Error Has Occurred\n");
