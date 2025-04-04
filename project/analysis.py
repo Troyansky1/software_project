@@ -36,17 +36,20 @@ def sol_to_clusters(clustering_sol, data_points, num_clusters):
 
 def calc_mean_dist(data_point, cluster):
     dist_list = []
+    data_point_arr = np.array(data_point)
     for pnt in cluster:
-        dist = np.linalg.norm(data_point - pnt)
-        if dist != 0:
+        pnt_arr = np.array(pnt)
+        if not np.array_equal(pnt_arr, data_point_arr):            
+            dist = np.linalg.norm(data_point_arr - pnt_arr)
             dist_list.append(dist)
     dist_vec = np.array(dist_list)
-    return np.mean(dist_vec)
+    return np.mean(dist_vec) if dist_vec.size > 0 else 0
 
 def calc_min_mean_dist(data_point, other_clusters):
     dist_list = []
     for cluster in other_clusters:
-        dist_list.append(calc_mean_dist(data_point, cluster))
+        if cluster != []:
+            dist_list.append(calc_mean_dist(data_point, cluster))
     return min(dist_list)    
     
 
@@ -55,23 +58,12 @@ def calc_silhouette(data_point, cluster, other_clusters):
     b = calc_min_mean_dist(data_point, other_clusters)
     return (b-a)/max(a,b)
 
-"""
-def calc_score_symnmf(data_points, clustering_sol, clusters):
-    coeff_list = []
-    for idx, pnt in enumerate(data_points):
-        cluster_num = clustering_sol[idx]
-        cluster = [data_points[i] for i in range(len(data_points)) if clustering_sol[i] == cluster_num]
-        other_clusters = [data_points[i] for i in range(len(data_points)) if i != idx] 
-        coeff_list.append(calc_silhouette(pnt, cluster, other_clusters))
-    coeff_list = np.array(coeff_list)
-    return np.mean(coeff_list)
-"""
 
 def calc_score_symnmf(clusters):
     coeff_list = []
     for cluster in clusters:
-        for pnt in cluster:
-            other_clusters = [clust for clust in clusters if clust != cluster]
+        other_clusters = [clust for clust in clusters if clust != cluster]
+        for pnt in cluster:                      
             coeff_list.append(calc_silhouette(pnt, cluster, other_clusters))
     coeff_list = np.array(coeff_list)
     return np.mean(coeff_list)
@@ -83,14 +75,13 @@ def calc_score_kmneans(input_file_path, k):
 def compare(data_points, k):
     centroids, cents_to_dots_map = run_kmeans(k, data_points, iter=300)
     centroids = np.array(centroids)
-    print("centroids = ", centroids)
-    print(cents_to_dots_map)
+    #print("centroids = ", centroids)
+    #print(cents_to_dots_map)
     final_H = run_symnmf(k, data_points)
     clustering_sol = derive_clustering_sol(final_H).tolist()
     clusters = sol_to_clusters(clustering_sol, data_points, k)
-    print("clusters = ", clusters)
-    # print(calc_score_symnmf(clusters))
-
+    # print("clusters = ", clusters)
+    print("score: ", calc_score_symnmf(clusters))
 
 
 def init_centroids(K, X):
