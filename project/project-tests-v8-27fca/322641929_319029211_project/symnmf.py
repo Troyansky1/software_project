@@ -19,11 +19,7 @@ def init_H(W, n, k):
     if isinstance(W, list):  # Convert list of lists to DataFrame
         W = pd.DataFrame(W)
         m = W.values.mean()
-        #print("W")
-        #print(W)
         H = pd.DataFrame(np.random.uniform(0, 2*math.sqrt(m/k), size=(n, k)))
-        #print("H")
-        #print(H)
         return H
     else:
         pass

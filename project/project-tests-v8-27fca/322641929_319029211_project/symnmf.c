@@ -5,7 +5,7 @@
 # include "symnmf.h"
 
 #define eps 0.0001
-#define MAX_ITER 3
+#define MAX_ITER 300
 
 /* Might be worth putting all the prints, calcs and so on in a seperate file */
 
@@ -383,26 +383,6 @@ void calc_norm_sim_matrix(float **W, float **A, float *D, int n){
     }
 }
 
-float calc_m(float **W, int n){
-    /*
-    * Computes the average of all entries of W.
-    * Params:
-    *   - W: Pointer to the normalized similarity matrix (n * n).
-    *   - n: Number of data points (rows).
-    * Returns:
-    *   - The average (float) of all entries of W.
-    */
-    int i, j;
-    float avg = 0;
-    for (i = 0; i < n; i++){
-        for (j = 0; j < n; j++){
-            avg += W[i][j];
-        }
-    }
-    avg = avg/(n*n);
-    return avg;
-}
-
 float** transpose(float **H, int n, int k){
     /*
     * Computes the transposed matrix.
@@ -451,11 +431,6 @@ void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, 
             prod[i][j] = sum;            
         }            
     }
-    /*
-    printf("_______mat mult_______\n");
-    print_matrix(prod, a_rows, b_cols);
-    printf("\n\n");
-    */
 }
 
 float inner_prod(float* vec_a, float *vec_b, int dim){
@@ -513,6 +488,7 @@ float** update_H(float** H, float** W, int n, int k) {
     float beta = 0.5, W_H_ij;
     float **HT, **H_HT, **H_HT_H, **H_next;
     HT = transpose(H, n, k);
+    /*print_matrix(HT, k, n);*/
     if (HT == NULL) return 0;
     H_HT = init_matrix_mem(n, n);
     if (H_HT == NULL) {
@@ -535,7 +511,7 @@ float** update_H(float** H, float** W, int n, int k) {
     }
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
-            W_H_ij = inner_prod(W[i], H[j], k);
+            W_H_ij = inner_prod(W[i], HT[j], n);
             /* update H(t) using the given rule */         
             H_next[i][j] = H[i][j] * (1 - beta + beta * (W_H_ij / H_HT_H[i][j]));
         }
@@ -642,8 +618,6 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
     int i = 0;  
     while (!convergence && i <= MAX_ITER){  
         H_next = update_H(H, W, n, k);
-        print_matrix(H_next, n, k);
-        printf("--------------\n");
         if (H_next == NULL){
             free_matrix_mem(W);
             free_matrix_mem(H);
@@ -662,8 +636,6 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
         free_matrix_mem(H);
         H = H_next;
     }
-    printf("%d\n", i);
-    /*if(print) printf("yay\n");*/
     if (print) {print_matrix(H_next, n, k);}
     return H_next;
 }
