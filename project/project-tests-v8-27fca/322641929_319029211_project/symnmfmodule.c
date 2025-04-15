@@ -111,22 +111,6 @@ PyObject *norm(PyObject *self, PyObject *args){
 }
 
 
- /* make this actually do the thing we want but this is a good skeleton */
- static PyObject* getDF(float **matrix, int dim1, int dim2){
-    PyObject *Py_DF;
-    int i, j;
-    Py_DF = PyList_New(dim1);
-    for (i = 0; i < dim1; i++){
-        PyObject *Py_row = PyList_New(dim2);
-        for (j = 0; j < dim2; j++){
-            PyList_SetItem(Py_row, j, PyFloat_FromDouble(matrix[i][j]));
-        }
-        PyList_SetItem(Py_DF, i, Py_row);
-    }
-    return Py_DF;
-}
-
-
 PyObject* symnmf(PyObject *self, PyObject *args){
     PyObject *Py_H;
     PyObject *Py_W;
@@ -142,10 +126,10 @@ PyObject* symnmf(PyObject *self, PyObject *args){
         return NULL;
     }
     n = PyObject_Length(Py_H);
-    H = getMatrix(Py_H, n, k); /* TODO: getmatrix (translate pandas into matrix) */
+    H = getMatrix(Py_H, n, k); 
     W = getMatrix(Py_W, n, n);
     final_H = run_symnmf(W, H, k, n, print);
-    Py_final_H = matrix_to_pyobject(final_H, n, k); /* TODO: getDF (translate matrix into pandas) */
+    Py_final_H = matrix_to_pyobject(final_H, n, k); 
     free_matrix_mem(W);
     return Py_final_H;
 }
@@ -167,19 +151,7 @@ static PyMethodDef symnmfMethods[] = {
     {"symnmf",
       (PyCFunction) symnmf,
       METH_VARARGS,         
-      PyDoc_STR("")}, /*
-    {"getMatrix",
-      (PyCFunction) getMatrix,
-      METH_VARARGS,         
-      PyDoc_STR("")},
-    {"free_matrix_mem",
-      (PyCFunction) free_matrix_mem,
-      METH_VARARGS,         
-      PyDoc_STR("")},
-    {"getDF",
-      (PyCFunction) getDF,
-      METH_VARARGS,         
-      PyDoc_STR("")},*/
+      PyDoc_STR("")}, 
     {NULL, NULL, 0, NULL}     
 };
 
