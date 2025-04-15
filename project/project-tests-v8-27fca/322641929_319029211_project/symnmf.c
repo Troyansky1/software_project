@@ -132,11 +132,11 @@ void get_matrix_params(int *n, int *d, FILE* file){
     * 
     * Returns: None (updates *n and *d).
     */
-    char ch;
+    int ch;
     int first_row = 1;
     *n = 0;
     *d = 1; 
-    while ((ch = fgetc(file)) != EOF) {
+    while ((ch = fgetc(file)) != -1) {
         if (first_row) {
             if (ch == ',') {
                 (*d)++; 
@@ -403,41 +403,6 @@ float calc_m(float **W, int n){
     return avg;
 }
 
-float random_float_in_range(float min, float max) {
-    /*
-    * Returns a random number (float) between min and max.
-    * Params:
-    *   - min: A number (float) that represents the lower end of the range.
-    *   - max: A number (float) that represents the upper end of the range.
-    * Returns:
-    *   - A random number (float) in the given range.
-    */
-    return (rand() / (float)RAND_MAX) * (max - min) + min;  
-}
-
-float** init_H(float **W, int k, int n){
-    /*
-    * Randomly initialize H with values from the interval [0, 2 ∗ sqrt(m/k)].
-    * Params:
-    *   - W: pointer to the normalized similarity matrix (n * n).
-    *   - k: Number of clusters (columns).
-    *   - n: Number of data points (rows).
-    * Returns:
-    *   - Pointer to the initialized H matrix.
-    */
-    float m = calc_m(W, n);
-    float** H = init_matrix_mem(n, k);
-    int i;
-    int j;
-    if (H == NULL) return NULL;
-    for (i = 0; i < n; i++){
-        for (j = 0; j < n; j++){
-            H[i][j] = random_float_in_range(0, 2*sqrt(m/k));
-        }
-    }
-    return H;
-}
-
 float** transpose(float **H, int n, int k){
     /*
     * Computes the transposed matrix.
@@ -632,6 +597,7 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
         }
     }
     free_matrix_mem(sub);
+    printf("the norm %f\n", norm);
     return norm;
 }
 
@@ -695,6 +661,8 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
         free_matrix_mem(H);
         H = H_next;
     }
+    printf("%d\n", i);
+    /*if(print) printf("yay\n");*/
     if (print) {print_matrix(H_next, n, k);}
     return H_next;
 }
