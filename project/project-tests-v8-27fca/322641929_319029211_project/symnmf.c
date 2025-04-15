@@ -202,8 +202,12 @@ int parse_line_to_array(char *line, float *row, int d) {
     int j = 0;
     while (*ptr != '\0' && *ptr != '\n' && j < d) {
         if (sscanf(ptr, "%f", &row[j]) == 1) {
-            while (*ptr != ',' && *ptr != '\0' && *ptr != '\n') ptr++;
-            if (*ptr == ',') ptr++;
+            while ((*ptr >= '0' && *ptr <= '9')) ptr++; 
+            if (*ptr == '.') {
+                ptr++; 
+                while ((*ptr >= '0' && *ptr <= '9')) ptr++; 
+            }
+            if (*ptr == ',') ptr++; 
             j++;
         } else {
             return 0; 
@@ -213,7 +217,8 @@ int parse_line_to_array(char *line, float *row, int d) {
 }
 
 
-void init_X(FILE* file, float** X, int n, int d) {
+
+int init_X(FILE* file, float** X, int n, int d) {
     /*
     * Reads matrix values from a text file into X.
     * Parameters:
@@ -231,13 +236,13 @@ void init_X(FILE* file, float** X, int n, int d) {
     for (i = 0; i < n; i++) {
         line = read_line(file, &buffer_size);
         if (line == NULL || !parse_line_to_array(line, X[i], d)) {
-            printf("An Error Has Occurred\n");
             free(line);
             free_matrix_mem(X);
-            return;
+            return 0;
         }
         free(line);
     }
+    return 1;
 }
 
 
@@ -254,7 +259,9 @@ float** create_X(FILE* file, int n, int d){
     */
     float** X;    
     X = init_matrix_mem(n, d);
-    init_X(file, X, n, d);
+    if (!init_X(file, X, n, d)){
+        return NULL;
+    }
     return X;
 }
 
@@ -291,6 +298,7 @@ float calc_similarity(float *a, float *b, int d){
     */
     float dist = calc_euclid_dist(a, b, d);
     float value;
+    printf("dist = %f\n", dist);
     value = exp(-0.5 * dist);
     return value;
 }
@@ -316,6 +324,10 @@ float** calc_similarity_matrix(float **X, int n, int d){
                 A[i][j] = 0;
             }
             else{
+                printf("i = %d", i);
+                printf("j = %d", j);
+                print_diag_matrix(X[i], d);
+                print_diag_matrix(X[j], d);
                 A[i][j] = calc_similarity(X[i], X[j], d);
             }
         }
@@ -774,7 +786,6 @@ void run_goal(char* goal, float** X, int n, int d){
     }
     else{
         printf("An Error Has Occurred\n");
-        printf("Wrong goal name\n");
     }
 }
 
@@ -785,22 +796,23 @@ int main(int argc, char **argv){
     FILE *fp;
     if (argc != 3){
         printf("An Error Has Occurred\n");
-        printf("Wrong num of arguments\n");
         return 1;
     }
     fp = fopen(argv[2],"r");
     if (fp == NULL){
         printf("An Error Has Occurred\n");
-        printf("can't open file\n");
         return 1;
     }
     get_matrix_params(&n, &d, fp);
     if (n <= 0 || d <= 0){
         printf("An Error Has Occurred\n");
-        printf("n <= 0 || d <= 0\n");
         return 1; 
     }
     X = create_X(fp, n, d);
+    if (X == NULL){
+        printf("An Error Has Occurred\n");
+        return 1; 
+    }
     fclose(fp);
     goal = argv[1];
     run_goal(goal, X, n, d);

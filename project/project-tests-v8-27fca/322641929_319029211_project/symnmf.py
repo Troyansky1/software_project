@@ -40,15 +40,43 @@ def deploy(goal, X, k):
         
     return
 
-def main(args):
-    k, goal, file_name = args[1:]
-    k = int(k)
+def validate_input(K, goal, filename):
     try:
-        X = pd.read_csv(file_name, header=None)
-    except IOError:
+        f = open(filename, "r")
+        line_count = sum(1 for _ in f)  
+        if (goal not in ["sym", "norm", "ddg", "symnmf"]):
+            return False 
+        if (not K.isdigit()): 
+            return False 
+        if (int(K) <= 1 or int(K) >= line_count):            
+            return False                   
+        f.close()
+        return True
+    except IOError: 
+        return False
+
+
+def main(args):
+    if (len(args) == 4):
+        k, goal, file_name = args[1:]
+        if not validate_input(k, goal, file_name):
+            print("An Error Has Occurred")
+            return
+        k = int(k)
+        try:
+            X = pd.read_csv(file_name, header=None)
+            if X.empty:
+                print("An Error Has Occurred")
+                return
+            if not np.issubdtype(X.values.dtype, np.floating):
+                print("An Error Has Occurred")
+                return
+        except IOError:
+            print("An Error Has Occurred")
+            return
+        deploy(goal, X.values.tolist(), k)
+    else:
         print("An Error Has Occurred")
-        print("Error reading file in python")
         return
-    deploy(goal, X.values.tolist(), k)
 
 main(sys.argv)

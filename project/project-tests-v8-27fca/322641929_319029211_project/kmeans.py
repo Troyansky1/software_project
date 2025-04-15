@@ -22,10 +22,10 @@ def validate_input(K, iter, filename):
         f = open(filename, "r")
         line_count = sum(1 for _ in f)        
         if (K <= 1 or K >= line_count or K != int(K)):
-            print("Invalid number of clusters!")
+            print("An Error Has Occurred")
             return False        
         if (iter <= 1 or iter >= 1000 or iter != int(iter)):
-            print("Invalid maximum iteration!")
+            print("An Error Has Occurred")
             return False
         f.close()
         return True
@@ -124,14 +124,24 @@ def run_kmeans(K, filename, iter=200):
 cont = True
 if (len(sys.argv) == 4):
     K, iter, filename = sys.argv[1:]
+    if (not K.isdigit()):
+        print("An Error Has Occurred")
+        cont = False    
+    if (not iter.isdigit()):
+        print("An Error Has Occurred")
+        cont = False  
 elif (len(sys.argv) == 3):
     K, filename = sys.argv[1:]
     iter = 200
+    if (not K.isdigit()):
+        print("An Error Has Occurred")
+        cont = False    
 else:
     print("An Error Has Occurred")
     cont = False
 
 if (cont):
+    
     K = float(K)
     iter = float(iter)
     if (validate_input(K, iter, filename)):

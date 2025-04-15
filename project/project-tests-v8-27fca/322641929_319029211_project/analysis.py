@@ -169,22 +169,46 @@ def compare(data_points, k):
     centroids = np.array(centroids)
     final_H = run_symnmf(k, data_points)
     clustering_sol = derive_clustering_sol(final_H).tolist()
-    print("clustering_sol:", clustering_sol)
     nmf_score = silhouette_score(data_points, clustering_sol)
     kmeans_score = silhouette_score(data_points, dots_to_cents_map)
-    print("nmf: ", nmf_score)
-    print("kmeans: ", kmeans_score)
+    print("nmf:", f"{nmf_score:.4f}" )
+    print("kmeans:", f"{kmeans_score:.4f}")
 
+def validate_input(K, filename):
+    try:
+        f = open(filename, "r")
+        line_count = sum(1 for _ in f)  
+        if (not K.isdigit()): 
+            return False 
+        if (int(K) <= 1 or int(K) >= line_count):            
+            return False                   
+        f.close()
+        return True
+    except IOError: 
+        return False
+    
 
 def main(args):
-    k, file_name = args[1:]
-    k = int(k)
-    try:
-        X = pd.read_csv(file_name, header=None)
-    except IOError:
+    if (len(args) == 3):
+        k, file_name = args[1:]
+        if not validate_input(k, file_name):
+            print("An Error Has Occurred")
+            return
+        k = int(k)
+        try:
+            X = pd.read_csv(file_name, header=None)
+            if X.empty:
+                print("An Error Has Occurred")
+                return
+            if not np.issubdtype(X.values.dtype, np.floating):
+                print("An Error Has Occurred")
+                return
+        except IOError:
+            print("An Error Has Occurred")
+            return
+        compare(X.values.tolist(), k)
+    else:
         print("An Error Has Occurred")
-        print("Error reading file in python")
         return
-    compare(X.values.tolist(), k)
 
 main(sys.argv)
