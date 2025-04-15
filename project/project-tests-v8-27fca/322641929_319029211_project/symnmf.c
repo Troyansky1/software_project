@@ -695,7 +695,7 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
         free_matrix_mem(H);
         H = H_next;
     }
-    if (print) print_matrix(H_next, n, k);
+    if (print) {print_matrix(H_next, n, k);}
     return H_next;
 }
 
@@ -828,7 +828,7 @@ void run_goal(char* goal, float** X, int n, int d){
             printf("An Error Has Occurred\n");
             return;
         }
-        run_norm(W, X, n, d, 0);
+        run_norm(W, X, n, d, 1);
         free_matrix_mem(W);
     }
     else{
@@ -845,24 +845,24 @@ int main(int argc, char **argv){
     if (argc != 3){
         printf("An Error Has Occurred\n");
         printf("Wrong num of arguments\n");
-        return 0;
+        return 1;
     }
     fp = fopen(argv[2],"r");
     if (fp == NULL){
         printf("An Error Has Occurred\n");
         printf("can't open file\n");
-        return 0;
+        return 1;
     }
     get_matrix_params(&n, &d, fp);
     if (n <= 0 || d <= 0){
         printf("An Error Has Occurred\n");
         printf("n <= 0 || d <= 0\n");
-        return 0; 
+        return 1; 
     }
     X = create_X(fp, n, d);
     fclose(fp);
     goal = argv[1];
     run_goal(goal, X, n, d);
     free_matrix_mem(X);
-    return 1;
+    return 0;
 }

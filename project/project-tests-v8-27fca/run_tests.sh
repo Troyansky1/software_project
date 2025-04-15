@@ -172,7 +172,7 @@ function cleanTmp() {
 	fi
 }
 
-cleanTmp
+#cleanTmp
 
 if [[ "${SPEED}" == *"kmeans"* ]]; then
 	kmeansSuite
