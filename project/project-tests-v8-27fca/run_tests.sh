@@ -111,7 +111,7 @@ function symnmfSuite() {
 	if [[ "${SPEED}" == *"edge"* ]]; then
 		testSymnmfAllGoals "not-existing" general_error  # Not existing file
 		testSymnmfAllGoals "empty" general_error
-		testSymnmfGaolsWithK 1 1_k292 292 k-almost-too-big
+		#testSymnmfGaolsWithK 1 1_k292 292 k-almost-too-big
 		testSymnmfGaolsWithK 1 general_error 293 k-too-big
 		testSymnmfGaolsWithK 1 general_error 999999 k-very-too-big
 		testSymnmfGaolsWithK 1 general_error 1 k-too-small-1

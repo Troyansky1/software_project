@@ -136,7 +136,7 @@ void get_matrix_params(int *n, int *d, FILE* file){
     int first_row = 1;
     *n = 0;
     *d = 1; 
-    while ((ch = fgetc(file)) != -1) {
+    while ((ch = fgetc(file)) != EOF) {
         if (first_row) {
             if (ch == ',') {
                 (*d)++; 
@@ -202,6 +202,7 @@ int parse_line_to_array(char *line, float *row, int d) {
     int j = 0;
     while (*ptr != '\0' && *ptr != '\n' && j < d) {
         if (sscanf(ptr, "%f", &row[j]) == 1) {
+            if(*ptr == '-') ptr++;
             while ((*ptr >= '0' && *ptr <= '9')) ptr++; 
             if (*ptr == '.') {
                 ptr++; 
@@ -298,7 +299,6 @@ float calc_similarity(float *a, float *b, int d){
     */
     float dist = calc_euclid_dist(a, b, d);
     float value;
-    printf("dist = %f\n", dist);
     value = exp(-0.5 * dist);
     return value;
 }
@@ -324,10 +324,6 @@ float** calc_similarity_matrix(float **X, int n, int d){
                 A[i][j] = 0;
             }
             else{
-                printf("i = %d", i);
-                printf("j = %d", j);
-                print_diag_matrix(X[i], d);
-                print_diag_matrix(X[j], d);
                 A[i][j] = calc_similarity(X[i], X[j], d);
             }
         }

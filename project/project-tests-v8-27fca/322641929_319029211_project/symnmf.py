@@ -48,7 +48,7 @@ def validate_input(K, goal, filename):
             return False 
         if (not K.isdigit()): 
             return False 
-        if (int(K) <= 1 or int(K) >= line_count):            
+        if (goal == "symnmf" and int(K) <= 1 or int(K) >= line_count):            
             return False                   
         f.close()
         return True
