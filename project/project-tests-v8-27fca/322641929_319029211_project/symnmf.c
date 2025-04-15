@@ -5,7 +5,7 @@
 # include "symnmf.h"
 
 #define eps 0.0001
-#define MAX_ITER 300
+#define MAX_ITER 3
 
 /* Might be worth putting all the prints, calcs and so on in a seperate file */
 
@@ -597,7 +597,6 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
         }
     }
     free_matrix_mem(sub);
-    printf("the norm %f\n", norm);
     return norm;
 }
 
@@ -643,6 +642,8 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
     int i = 0;  
     while (!convergence && i <= MAX_ITER){  
         H_next = update_H(H, W, n, k);
+        print_matrix(H_next, n, k);
+        printf("--------------\n");
         if (H_next == NULL){
             free_matrix_mem(W);
             free_matrix_mem(H);
