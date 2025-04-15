@@ -14,6 +14,8 @@ PyObject* symnmf(PyObject *self, PyObject *args);
 
 void print_matrix(float** matrix, int dim1, int dim2);
 
+void free_matrix_mem(float** matrix);
+
 float** init_matrix_mem(int dim1, int dim2);
 
 float** run_symnmf(float** W, float** H, int k, int n, int print);

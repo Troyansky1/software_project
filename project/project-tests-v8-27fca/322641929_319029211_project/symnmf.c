@@ -22,15 +22,14 @@ void print_matrix(float** matrix, int dim1, int dim2){
     *   - None.
     */
     int i, j;
-    printf("------------------\n");
     for(i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
-            printf("%.8f", matrix[i][j]);
+            printf("%.4f", matrix[i][j]);
             if (j < dim2 -1) printf("%c", ',');
             else printf("%c", '\n');
         }
     }
-    printf("------------------\n");
+
 }
 
 void print_diag_matrix(float* vector, int dim){
@@ -50,7 +49,7 @@ void print_diag_matrix(float* vector, int dim){
     for(i = 0; i < dim; i++){
         for (j = 0; j < dim; j++){
             if (i == j) printf("%.4f", vector[i]);
-            else printf("%d", 0);
+            else printf("0.0000");
             if (j < dim -1) printf("%c", ',');
             else printf("%c", '\n');
         }
@@ -308,7 +307,7 @@ float** calc_similarity_matrix(float **X, int n, int d){
     *   - NULL if memory allocation fails.
     */
     int i, j;
-    float ** A;
+    float **A;
     A = init_matrix_mem(n, n);
     if (A == NULL) return NULL;
     for (i = 0; i < n; i++){
@@ -759,7 +758,7 @@ float** run_norm(float **W, float **X, int n, int d, int print){
  * Returns:
  *   - None.
  */
-    float * D;
+    float *D;
     float **A;
     A = calc_similarity_matrix(X, n, d);
     if (A == NULL) {
@@ -830,6 +829,7 @@ void run_goal(char* goal, float** X, int n, int d){
             return;
         }
         run_norm(W, X, n, d, 0);
+        free_matrix_mem(W);
     }
     else{
         printf("An Error Has Occurred\n");

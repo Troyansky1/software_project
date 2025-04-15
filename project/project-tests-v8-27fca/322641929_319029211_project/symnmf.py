@@ -34,13 +34,13 @@ def deploy(goal, X, k):
         W = snmf.norm(X, 0)
         n = len(X)
         H = init_H(W, n, k)
-        snmf.symnmf(H.values.tolist(), W, k, 0)
+        snmf.symnmf(H.values.tolist(), W, k, 1)
     elif (goal == "sym"):
         snmf.sym(X)
     elif (goal == "ddg"):
           snmf.ddg(X)
     elif (goal == "norm"):
-        W = snmf.norm(X, 1)
+        snmf.norm(X, 1)
         
     return
 

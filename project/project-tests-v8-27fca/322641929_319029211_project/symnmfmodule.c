@@ -31,6 +31,7 @@ PyObject *sym(PyObject *self, PyObject *args){
 
     X = getMatrix(Py_X, n, d);
     run_sym(X, n, d);
+    free_matrix_mem(X);
     return self;
 }
 
@@ -46,6 +47,7 @@ PyObject *ddg(PyObject *self, PyObject *args){
     d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
     X = getMatrix(Py_X, n, d);
     run_ddg(X, n, d);
+    free_matrix_mem(X);
     return self;
 }
 
@@ -72,10 +74,10 @@ PyObject *matrix_to_pyobject(float** matrix, int dim1, int dim2) {
         }
         PyList_SetItem(python_list, i, row_list);  
     }
+    free_matrix_mem(matrix);
+
     return python_list;  
 }
-
-
 
 PyObject *norm(PyObject *self, PyObject *args){
     PyObject *Py_X;
@@ -88,6 +90,7 @@ PyObject *norm(PyObject *self, PyObject *args){
     }
     PyObject* first_row = PyList_GetItem(Py_X, 0);
     d = PyObject_Length(first_row);
+    n = PyObject_Length(Py_X);
     if (d < 1) {
         printf("Error: First row is empty\n");
         return NULL;
@@ -103,8 +106,10 @@ PyObject *norm(PyObject *self, PyObject *args){
         return NULL;
     } 
     run_norm(W, X, n, d, print); 
+    free_matrix_mem(X);
     return matrix_to_pyobject(W, n, n);
 }
+
 
  /* make this actually do the thing we want but this is a good skeleton */
  static PyObject* getDF(float **matrix, int dim1, int dim2){
@@ -141,6 +146,7 @@ PyObject* symnmf(PyObject *self, PyObject *args){
     W = getMatrix(Py_W, n, n);
     final_H = run_symnmf(W, H, k, n, print);
     Py_final_H = matrix_to_pyobject(final_H, n, k); /* TODO: getDF (translate matrix into pandas) */
+    free_matrix_mem(W);
     return Py_final_H;
 }
 
@@ -161,15 +167,19 @@ static PyMethodDef symnmfMethods[] = {
     {"symnmf",
       (PyCFunction) symnmf,
       METH_VARARGS,         
-      PyDoc_STR("")},
+      PyDoc_STR("")}, /*
     {"getMatrix",
       (PyCFunction) getMatrix,
+      METH_VARARGS,         
+      PyDoc_STR("")},
+    {"free_matrix_mem",
+      (PyCFunction) free_matrix_mem,
       METH_VARARGS,         
       PyDoc_STR("")},
     {"getDF",
       (PyCFunction) getDF,
       METH_VARARGS,         
-      PyDoc_STR("")},
+      PyDoc_STR("")},*/
     {NULL, NULL, 0, NULL}     
 };
 

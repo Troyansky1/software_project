@@ -158,7 +158,7 @@ def init_H(W, n, k):
         pass
 
 def run_symnmf(k, X):
-    W = snmf.norm(X)
+    W = snmf.norm(X, 0)
     n = len(X)
     H = init_H(W, n, k)
     H_next = snmf.symnmf(H.values.tolist(), W, k, 0)
