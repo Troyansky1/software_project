@@ -1,15 +1,10 @@
 CC = gcc
-#CFLAGS = -ansi -Wall -Wextra -Werror -pedantic-errors 
-CFLAGS = 
+CFLAGS = -ansi -Wall -Wextra -Werror -pedantic-errors 
 LDFLAGS = -lm
 
-# Main target
-symnmf: symnmf.o
-	$(CC) -o symnmf symnmf.o $(LDFLAGS)
-
-# Compile source file
+# Compile ad link source file
 symnmf.o: symnmf.c symnmf.h
-	$(CC) -c symnmf.c $(CFLAGS)
+	$(CC) -o symnmf symnmf.c $(CFLAGS) $(LDFLAGS)
 
 # Clean build artifacts
 clean:

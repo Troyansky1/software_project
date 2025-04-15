@@ -1,16 +1,16 @@
 # ifndef SYMNMF_H_
 # define SYMNMF_H_
+
+
+/* Functions in symnmfmodule.c 
 # include <Python.h>
-
-/* Functions in symnmfmodule.c */
-
 PyObject* sym(PyObject *self, PyObject *args);
 
 PyObject* ddg(PyObject *self, PyObject *args);
 
 PyObject* norm(PyObject *self, PyObject *args);
 
-PyObject* symnmf(PyObject *self, PyObject *args);
+PyObject* symnmf(PyObject *self, PyObject *args); */
 
 void print_matrix(float** matrix, int dim1, int dim2);
 

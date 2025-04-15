@@ -2,6 +2,13 @@
 # include <Python.h>
 # include "symnmf.h"
 
+PyObject* sym(PyObject *self, PyObject *args);
+
+PyObject* ddg(PyObject *self, PyObject *args);
+
+PyObject* norm(PyObject *self, PyObject *args);
+
+PyObject* symnmf(PyObject *self, PyObject *args);
 
 static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     float **X;
