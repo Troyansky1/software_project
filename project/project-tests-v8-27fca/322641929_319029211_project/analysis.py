@@ -5,7 +5,6 @@ import pandas as pd
 import symnmf as snmf
 from sklearn.metrics import silhouette_score
 
-
 np.random.seed(1234)
 
 def derive_clustering_sol(H):
