@@ -1,7 +1,8 @@
 {
     "files.associations": {
         "python.h": "c",
-        "cap.h": "c"
+        "cap.h": "c",
+        "stdio.h": "c"
     },
     "python.REPL.enableREPLSmartSend": false
 }
