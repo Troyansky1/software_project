@@ -11,6 +11,15 @@ PyObject* norm(PyObject *self, PyObject *args);
 PyObject* symnmf(PyObject *self, PyObject *args);
 
 static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
+    /*
+    * Recieves a matrix (dim1 x dim2) and returns it in a C format.
+    * Parameters:
+    *   - matrix: A PyObject matrix.
+    *   - dim1: The rows dimention.
+    *   - dim2: The columns dimention.
+    * Returns:
+    *   - The matrix in C format.
+    */
     float **X;
     int i, j;
     float item;
@@ -24,42 +33,16 @@ static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     return X;
 }
 
-PyObject *sym(PyObject *self, PyObject *args){
-    PyObject *Py_X;
-    float **X;
-    int n, d;
-
-    if (!PyArg_ParseTuple(args, "O", &Py_X)){
-        return NULL;
-    }
-    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type*/
-    n = PyObject_Length(Py_X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
-
-    X = getMatrix(Py_X, n, d);
-    run_sym(X, n, d);
-    free_matrix_mem(X);
-    return self;
-}
-
-PyObject *ddg(PyObject *self, PyObject *args){
-    PyObject *Py_X;
-    float **X;
-    int n, d;
-
-    if (!PyArg_ParseTuple(args, "O", &Py_X)){
-        return NULL;
-    }
-    n = PyObject_Length(Py_X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
-    X = getMatrix(Py_X, n, d);
-    run_ddg(X, n, d);
-    free_matrix_mem(X);
-    return self;
-}
-
-
 PyObject *matrix_to_pyobject(float** matrix, int dim1, int dim2) {
+    /*
+    * Recieves a matrix (dim1 x dim2) and returns it as a PyObject.
+    * Parameters:
+    *   - matrix: A C matrix.
+    *   - dim1: The rows dimention.
+    *   - dim2: The columns dimention.
+    * Returns:
+    *   - A python list of lists.
+    */
     PyObject* python_list = PyList_New(dim1); 
     if (!python_list) return NULL;  
 
@@ -86,7 +69,60 @@ PyObject *matrix_to_pyobject(float** matrix, int dim1, int dim2) {
     return python_list;  
 }
 
+PyObject *sym(PyObject *self, PyObject *args){
+    /*
+    * Calculates and prints the similarity matrix (A) using C modules.
+    * Parameters:
+    *   - args Py_X: The initial input matrix (X) as PyObject.
+    */
+    PyObject *Py_X;
+    float **X;
+    int n, d;
+
+    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        return NULL;
+    }
+    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type*/
+    n = PyObject_Length(Py_X);
+    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+
+    X = getMatrix(Py_X, n, d);
+    run_sym(X, n, d);
+    free_matrix_mem(X);
+    return self;
+}
+
+PyObject *ddg(PyObject *self, PyObject *args){
+    /*
+    * Calculates and prints The diagonal degree matrix (D) using C modules.
+    * Parameters:
+    *   - args Py_X: The initial input matrix (X) as PyObject.
+    */
+    PyObject *Py_X;
+    float **X;
+    int n, d;
+
+    if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        return NULL;
+    }
+    n = PyObject_Length(Py_X);
+    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+    X = getMatrix(Py_X, n, d);
+    run_ddg(X, n, d);
+    free_matrix_mem(X);
+    return self;
+}
+
+
 PyObject *norm(PyObject *self, PyObject *args){
+    /*
+    * Calculates and prints The normalized similarity matrix (W) using C modules.
+    * Parameters:
+    *   - args Py_X: The initial input matrix (X) as PyObject.
+    *   - args print: A bollean, 1 if we want to print the result of symnmf and 0 if not.
+    * Returns:
+    *   - The finale association matrix (H) as a PyObject
+    */
     PyObject *Py_X;
     float **X;
     int n, d;
@@ -119,6 +155,14 @@ PyObject *norm(PyObject *self, PyObject *args){
 
 
 PyObject* symnmf(PyObject *self, PyObject *args){
+    /*
+    * Calculates a symmetric Non-negative Matrix Factorization (symnmf) by calling c modules.
+    * Parameters:
+    *   - args Py_H: The initial association matrix (H) as PyObject.
+    *   - args Py_W: The normalized similarity matrix as PyObject.
+    *   - args k: The number of clusters.
+    *   - args print: A bollean, 1 if we want to print the result of symnmf and 0 if not.
+    */
     PyObject *Py_H;
     PyObject *Py_W;
     PyObject *Py_final_H;
@@ -163,6 +207,15 @@ static PyMethodDef symnmfMethods[] = {
 };
 
 static struct PyModuleDef moduledef = {
+    /*
+    * Module definition for symnmf Python C extension.
+    * Parameters:
+    *   - m_base: Internal use.
+    *   - m_name: Name of the module ("symnmf").
+    *   - m_doc: Module documentation (NULL).
+    *   - m_size: Size of module state (-1 means global state).
+    *   - m_methods: Array of methods provided by this module.
+    */
     PyModuleDef_HEAD_INIT,
     "symnmf",
     NULL,
@@ -170,8 +223,12 @@ static struct PyModuleDef moduledef = {
     symnmfMethods
 };
 
-PyMODINIT_FUNC PyInit_symnmf(void)
-{
+PyMODINIT_FUNC PyInit_symnmf(void){
+    /*
+    * Initialize the symnmf module.
+    * Returns:
+    *   - A Python module object, or NULL on failure.
+    */
     PyObject *m;
     m = PyModule_Create(&moduledef);
     if (!m) {

@@ -26,6 +26,15 @@ def init_H(W, n, k):
 
 
 def deploy(goal, X, k):
+    """
+    Run the goal received as argument.
+    Params:
+      - goal: A string indicating the goal to execute. It can be "symnmf","sym", "ddg", or "norm".
+      - X: The input dots.
+      - k: Number of clusters (columns).
+    Returns:
+      - Pandas DataFrame H.
+    """
     if (goal == "symnmf"):
         W = snmf.norm(X, 0)
         n = len(X)
@@ -41,6 +50,15 @@ def deploy(goal, X, k):
     return
 
 def validate_input(K, goal, filename):
+    """
+    Validate the user arguments.
+    Params:
+      - K: Number of clusters.
+      - goal: A string indicating the goal to execute. It must be one of these: "symnmf","sym", "ddg", or "norm".
+      - filename: The input filename.      
+    Returns:
+      - A bolean, True if the arguments are valid, else False.
+    """
     try:
         f = open(filename, "r")
         line_count = sum(1 for _ in f)  
@@ -57,6 +75,14 @@ def validate_input(K, goal, filename):
 
 
 def main(args):
+    """
+    Validates the arguments and runs the goal with the given parameters.
+    prints an error message if there is an error.
+    Params:
+      - arg[1] K: Number of clusters.
+      - arg[2] goal: A string indicating the goal to execute. Can be "symnmf","sym", "ddg", or "norm".
+      - arg[3] filename: The input filename.         
+    """
     if (len(args) == 4):
         k, goal, file_name = args[1:]
         if not validate_input(k, goal, file_name):

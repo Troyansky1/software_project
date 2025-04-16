@@ -239,6 +239,15 @@ void run_goal(char* goal, float** X, int n, int d){
 }
 
 float* derive_clustering_sol(float** H, int n, int k){
+    /*
+    * Derive the clustering solution for analysis.
+    * Parameters:
+    *   - H: Pointer to the matrix H (n x k).
+    *   - k: The number of columns in matrix H (and matrix W).
+    *   - n: The number of rows in matrix H (and matrix W).
+    * Returns:
+    *   - The clustering solution
+    */
     int i, j;
     float max;
     float* hard_clustering = init_vec_mem(n);
@@ -255,6 +264,15 @@ float* derive_clustering_sol(float** H, int n, int k){
 }
 
 int main(int argc, char **argv){
+        /*
+    * Derive the clustering solution for analysis.
+    * Parameters:
+    *   - argc: The arguments count.
+    *   - argv[2]: The input file path.
+    *   - argv[1]: A string indicating the goal to execute. It can be "sym", "ddg", or "norm".
+    * Returns:
+    *   - 1 if there was an error, else 0.
+    */
     float** X;
     char* goal;
     int n, d;

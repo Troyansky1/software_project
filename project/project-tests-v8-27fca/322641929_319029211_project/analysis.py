@@ -18,61 +18,6 @@ def derive_clustering_sol(H):
     pd_H = pd.DataFrame(H)
     return pd_H.idxmax(axis=1)
 
-def sol_to_clusters(clustering_sol, data_points, num_clusters):
-    """
-    Convert the clustering solution to a list of clusters.
-    Params:
-      - clustering_sol: List of cluster assignments.
-      - data_points: np array of the data points.
-    Returns:
-      - List of clusters.
-    """
-    #print(clustering_sol)
-    clusters = []
-    for i in range(num_clusters):
-        cluster = [data_points[j] for j in range(len(data_points)) if clustering_sol[j] == i]
-        clusters.append(cluster)
-    return clusters
-
-def calc_mean_dist(data_point, cluster):
-    dist_list = []
-    data_point_arr = np.array(data_point)
-    for pnt in cluster:
-        pnt_arr = np.array(pnt)
-        if not np.array_equal(pnt_arr, data_point_arr):            
-            dist = np.linalg.norm(data_point_arr - pnt_arr)
-            dist_list.append(dist)
-    dist_vec = np.array(dist_list)
-    return np.mean(dist_vec) if dist_vec.size > 0 else 0
-
-def calc_min_mean_dist(data_point, other_clusters):
-    dist_list = []
-    for cluster in other_clusters:
-        if cluster != []:
-            dist_list.append(calc_mean_dist(data_point, cluster))
-    return min(dist_list)    
-    
-
-def calc_silhouette(data_point, cluster, other_clusters):
-    a = calc_mean_dist(data_point, cluster)
-    b = calc_min_mean_dist(data_point, other_clusters)
-    return (b-a)/max(a,b)
-
-
-def calc_score_symnmf(clusters):
-    coeff_list = []
-    for cluster in clusters:
-        other_clusters = [clust for clust in clusters if clust != cluster]
-        for pnt in cluster:                      
-            coeff_list.append(calc_silhouette(pnt, cluster, other_clusters))
-    coeff_list = np.array(coeff_list)
-    return np.mean(coeff_list)
-
-def calc_score_kmneans(input_file_path, k):
-    pass
-
-
-
 def init_centroids(K, X):
     centroids = []
     datapoints = X
@@ -80,16 +25,11 @@ def init_centroids(K, X):
         centroids.append(datapoints[i])   
     return centroids
 
-def euclid_dist(vector1, vector2):
-    point1 = np.array(vector1)
-    point2 = np.array(vector2)
-    return np.linalg.norm(point1 - point2)
-
 def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     min_dist = float('inf')
     min_cent = 0
     for j, vec_cent in enumerate(centroids):
-        dist = euclid_dist(vec_xi, vec_cent)
+        dist = np.linalg.norm(np.array(vec_xi) - np.array(vec_cent))
         if (dist <= min_dist):
             min_dist = dist
             min_cent = j
@@ -108,7 +48,7 @@ def clear(cent_to_dots_map):
 
 def convergence(centroids, prev, eps):
     for cent1, cent2 in zip(centroids, prev):
-        delta_mu = euclid_dist(cent1, cent2)
+        delta_mu = np.linalg.norm(np.array(cent1)- np.array(cent2))
         if (delta_mu >= eps):
             return False
     return True
@@ -163,7 +103,6 @@ def run_symnmf(k, X):
     H_next = snmf.symnmf(H.values.tolist(), W, k, 0)
     return H_next
 
-
 def compare(data_points, k):
     centroids, dots_to_cents_map = run_kmeans(k, data_points, iter=300)
     centroids = np.array(centroids)
@@ -175,6 +114,14 @@ def compare(data_points, k):
     print("kmeans:", f"{kmeans_score:.4f}")
 
 def validate_input(K, filename):
+    """
+    Validate the user arguments.
+    Params:
+      - K: Number of clusters.
+      - filename: The input filename.      
+    Returns:
+      - A bolean, True if the arguments are valid, else False.
+    """
     try:
         f = open(filename, "r")
         line_count = sum(1 for _ in f)  
@@ -187,8 +134,14 @@ def validate_input(K, filename):
     except IOError: 
         return False
     
-
 def main(args):
+    """
+    Validates the arguments and runs the goal with the given parameters.
+    prints an error message if there is an error.
+    Params:
+      - arg[1] K: Number of clusters.
+      - arg[2] filename: The input filename.         
+    """
     if (len(args) == 3):
         k, file_name = args[1:]
         if not validate_input(k, file_name):
