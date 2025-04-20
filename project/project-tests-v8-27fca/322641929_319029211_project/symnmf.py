@@ -61,12 +61,12 @@ def validate_input(K, goal, filename):
     """
     try:
         f = open(filename, "r")
-        line_count = sum(1 for _ in f)  
+        num_points = sum(1 for _ in f)  
         if (goal not in ["sym", "norm", "ddg", "symnmf"]):
             return False 
         if (not K.isdigit()): 
             return False 
-        if (goal == "symnmf" and int(K) <= 1 or int(K) >= line_count):            
+        if (goal == "symnmf" and int(K) <= 1 or int(K) >= num_points):            
             return False                   
         f.close()
         return True
