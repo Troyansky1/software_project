@@ -6,28 +6,30 @@
 # include <math.h>
 # include "utils.h"
 
-float calc_euclid_dist(float *a, float *b, int d);
+int check_convergence(double** H, double** H_next, int n, int k);
 
-float calc_similarity(float *a, float *b, int d);
+double calc_euclid_dist(double *a, double *b, int d);
 
-float** calc_similarity_matrix(float **X, int n, int d);
+double calc_similarity(double *a, double *b, int d);
 
-float* calc_diag_deg_vec(float **A, int n);
+double** calc_similarity_matrix(double **X, int n, int d);
 
-void calc_inv_sqrt(float *D, int n);
+double* calc_diag_deg_vec(double **A, int n);
 
-void calc_norm_sim_matrix(float **W, float **A, float *D, int n);
+void calc_inv_sqrt(double *D, int n);
 
-float** transpose(float **H, int n, int k);
+void calc_norm_sim_matrix(double **W, double **A, double *D, int n);
 
-void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, float** prod);
+double** transpose(double **H, int n, int k);
 
-float inner_prod(float* vec_a, float *vec_b, int dim);
+void mat_mult(int a_rows, int a_cols, int b_cols, double** mat_a, double** mat_b, double** prod);
 
-int compute_intermediate_matrices(float** H, int n, int k, float** HT, float** H_HT, float** H_HT_H) ;
+double inner_prod(double* vec_a, double *vec_b, int dim);
 
-float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b);
+int compute_intermediate_matrices(double** H, int n, int k, double** HT, double** H_HT, double** H_HT_H) ;
 
-float calc_frob_norm(float** H, float** H_next, int n, int k);
+double** mat_sub( int dim1, int dim2, double** mat_a, double** mat_b);
+
+double calc_frob_norm(double** H, double** H_next, int n, int k);
 
 # endif

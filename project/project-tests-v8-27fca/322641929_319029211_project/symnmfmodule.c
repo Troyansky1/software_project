@@ -10,7 +10,7 @@ PyObject* norm(PyObject *self, PyObject *args);
 
 PyObject* symnmf(PyObject *self, PyObject *args);
 
-static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
+static double** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     /*
     * Recieves a matrix (dim1 x dim2) and returns it in a C format.
     * Parameters:
@@ -20,9 +20,9 @@ static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     * Returns:
     *   - The matrix in C format.
     */
-    float **X;
+    double **X;
     int i, j;
-    float item;
+    double item;
     X = init_matrix_mem(dim1, dim2);
     for (i = 0; i < dim1; i++){
         for (j = 0; j < dim2; j++){
@@ -33,7 +33,7 @@ static float** getMatrix(PyObject *Py_DF, int dim1, int dim2){
     return X;
 }
 
-PyObject *matrix_to_pyobject(float** matrix, int dim1, int dim2) {
+PyObject *matrix_to_pyobject(double** matrix, int dim1, int dim2) {
     /*
     * Recieves a matrix (dim1 x dim2) and returns it as a PyObject.
     * Parameters:
@@ -41,7 +41,7 @@ PyObject *matrix_to_pyobject(float** matrix, int dim1, int dim2) {
     *   - dim1: The rows dimention.
     *   - dim2: The columns dimention.
     * Returns:
-    *   - A python list of lists.
+    *   - The matrix as a python list of lists.
     */
     PyObject* python_list = PyList_New(dim1); 
     if (!python_list) return NULL;  
@@ -76,15 +76,15 @@ PyObject *sym(PyObject *self, PyObject *args){
     *   - args Py_X: The initial input matrix (X) as PyObject.
     */
     PyObject *Py_X;
-    float **X;
+    double **X;
     int n, d;
 
     if (!PyArg_ParseTuple(args, "O", &Py_X)){
         return NULL;
     }
-    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type*/
+    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type */
     n = PyObject_Length(Py_X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+    d = PyObject_Length(PyList_GetItem(Py_X, 0));
 
     X = getMatrix(Py_X, n, d);
     run_sym(X, n, d);
@@ -99,14 +99,14 @@ PyObject *ddg(PyObject *self, PyObject *args){
     *   - args Py_X: The initial input matrix (X) as PyObject.
     */
     PyObject *Py_X;
-    float **X;
+    double **X;
     int n, d;
 
     if (!PyArg_ParseTuple(args, "O", &Py_X)){
         return NULL;
     }
     n = PyObject_Length(Py_X);
-    d = PyObject_Length(PyList_GetItem(Py_X, 0)); /* TODO: check if this is really D */
+    d = PyObject_Length(PyList_GetItem(Py_X, 0));
     X = getMatrix(Py_X, n, d);
     run_ddg(X, n, d);
     free_matrix_mem(X);
@@ -116,15 +116,15 @@ PyObject *ddg(PyObject *self, PyObject *args){
 
 PyObject *norm(PyObject *self, PyObject *args){
     /*
-    * Calculates and prints The normalized similarity matrix (W) using C modules.
+    * Calculates and prints the normalized similarity matrix (W) using C modules.
     * Parameters:
     *   - args Py_X: The initial input matrix (X) as PyObject.
-    *   - args print: A bollean, 1 if we want to print the result of symnmf and 0 if not.
+    *   - args print: A boolean, 1 if the result of symnmf is to be printed and 0 if not.
     * Returns:
-    *   - The finale association matrix (H) as a PyObject
+    *   - The normalized similarity matrix (W) as a PyObject
     */
     PyObject *Py_X;
-    float **X;
+    double **X;
     int n, d;
     int print;
     if (!PyArg_ParseTuple(args, "Oi", &Py_X, &print)){
@@ -143,7 +143,7 @@ PyObject *norm(PyObject *self, PyObject *args){
         printf("Error: getMatrix() failed\n");
         return NULL;
     }
-    float** W = init_matrix_mem(n, n);
+    double** W = init_matrix_mem(n, n);
     if (W == NULL){
         printf("Error: init_matrix_mem failed\n");
         return NULL;
@@ -161,14 +161,16 @@ PyObject* symnmf(PyObject *self, PyObject *args){
     *   - args Py_H: The initial association matrix (H) as PyObject.
     *   - args Py_W: The normalized similarity matrix as PyObject.
     *   - args k: The number of clusters.
-    *   - args print: A bollean, 1 if we want to print the result of symnmf and 0 if not.
+    *   - args print: A boolean, 1 if we want to print the result of symnmf and 0 if not.
+    * Returns:
+    *   - The final association matrix (H) as a PyObject
     */
     PyObject *Py_H;
     PyObject *Py_W;
     PyObject *Py_final_H;
-    float **H;
-    float **W;
-    float **final_H;
+    double **H;
+    double **W;
+    double **final_H;
     int k;
     int n;
     int print;
@@ -187,6 +189,19 @@ PyObject* symnmf(PyObject *self, PyObject *args){
 
 
 static PyMethodDef symnmfMethods[] = {
+    /*
+    * Method table for the symnmf Python extension module.
+    * Maps Python function names (as they will be called from Python)
+    * to their corresponding C implementations.
+    * 
+    * Each entry includes:
+    * - The name of the function as seen in Python.
+    * - A pointer to the C function implementing it.
+    * - The calling convention (e.g., METH_VARARGS indicates a tuple of arguments).
+    * - A docstring for the function, used in help() and interactive sessions.
+    * 
+    * The list must be terminated with a sentinel {NULL, NULL, 0, NULL}.
+    */
     {"sym",                   
       (PyCFunction) sym,
       METH_VARARGS,         

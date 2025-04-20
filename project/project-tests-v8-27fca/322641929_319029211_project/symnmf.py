@@ -8,11 +8,11 @@ np.random.seed(1234)
 
 def init_H(W, n, k):
     """
-    Randomly initialize H with values from the interval [0, 2 ∗ sqrt(m/k)].
+    Randomly initialize H with values from the interval [0, 2 * sqrt(m/k)].
     Parameters:
       - W: Pandas DataFrame of the normalized similarity matrix (n * n).
-      - k: Number of clusters (columns).
       - n: Number of data points (rows).
+      - k: Number of clusters (columns).
     Returns:
       - Pandas DataFrame H.
     """
@@ -30,10 +30,10 @@ def deploy(goal, X, k):
     Run the goal received as argument.
     Parameters:
       - goal: A string indicating the goal to execute. It can be "symnmf","sym", "ddg", or "norm".
-      - X: The input dots.
+      - X: The input data.
       - k: Number of clusters (columns).
-    Returns:
-      - Pandas DataFrame H.
+    Prints:
+        - The result of the goal.
     """
     if (goal == "symnmf"):
         W = snmf.norm(X, 0)
@@ -51,13 +51,13 @@ def deploy(goal, X, k):
 
 def validate_input(K, goal, filename):
     """
-    Validate the user arguments.
+    Validates the user arguments.
     Parameters:
       - K: Number of clusters.
       - goal: A string indicating the goal to execute. It must be one of these: "symnmf","sym", "ddg", or "norm".
       - filename: The input filename.      
     Returns:
-      - A bolean, True if the arguments are valid, else False.
+      - A boolean, True if the arguments are valid, else False.
     """
     try:
         f = open(filename, "r")
@@ -78,7 +78,7 @@ def main(args):
     """
     Validates the arguments and runs the goal with the given parameters.
     prints an error message if there is an error.
-    Params:
+    Parameters:
       - arg[1] K: Number of clusters.
       - arg[2] goal: A string indicating the goal to execute. Can be "symnmf","sym", "ddg", or "norm".
       - arg[3] filename: The input filename.         

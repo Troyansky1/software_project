@@ -4,7 +4,7 @@
 # include <math.h>
 # include "symnmf.h"
 
-void print_matrix(float** matrix, int dim1, int dim2){
+void print_matrix(double** matrix, int dim1, int dim2){
     /*
     * Prints a matrix with dimensions dim1 x dim2. Each element of the 
     * matrix is printed with a precision of four decimal places, with commas separating 
@@ -27,7 +27,7 @@ void print_matrix(float** matrix, int dim1, int dim2){
 
 }
 
-void print_diag_matrix(float* vector, int dim){
+void print_diag_matrix(double* vector, int dim){
     /*
     * Prints the diagonal matrix representation of a given vector. The function takes a 
     * vector of size dim and prints it as a diagonal matrix, where the diagonal entries 
@@ -51,7 +51,7 @@ void print_diag_matrix(float* vector, int dim){
     }
 }
 
-float* init_vec_mem(int dim) {
+double* init_vec_mem(int dim) {
     /*
     * Allocates memory for a vector as a contiguous block.
     * Parameters:
@@ -60,9 +60,9 @@ float* init_vec_mem(int dim) {
     *   - A pointer to an array if successful.
     *   - NULL if memory allocation fails.
     */
-    float *p;
+    double *p;
     /* Allocate contiguous memory for the vector */
-    p = calloc(dim, sizeof(float));  
+    p = calloc(dim, sizeof(double));  
     if (!p){
         printf("An Error Has Occurred\n");
         return NULL;  
@@ -70,7 +70,7 @@ float* init_vec_mem(int dim) {
     return p;
 }
 
-float** init_matrix_mem(int dim1, int dim2) {
+double** init_matrix_mem(int dim1, int dim2) {
     /*
     * Allocates memory for an dim1 x dim2 matrix as a contiguous block.
     * Parameters:
@@ -80,16 +80,16 @@ float** init_matrix_mem(int dim1, int dim2) {
     *   - A pointer to an array of row pointers if successful.
     *   - NULL if memory allocation fails.
     */
-    float *p;
-    float **a;
+    double *p;
+    double **a;
     int i;
     /* Allocate contiguous memory for the matrix */
-    p = calloc(dim1 * dim2, sizeof(float));  
+    p = calloc(dim1 * dim2, sizeof(double));  
     if (!p){
         printf("An Error Has Occurred\n");
         return NULL;  
     } 
-    a = calloc(dim1, sizeof(float*));  
+    a = calloc(dim1, sizeof(double*));  
     if (!a) {
         free(p);
         printf("An Error Has Occurred\n");
@@ -101,7 +101,7 @@ float** init_matrix_mem(int dim1, int dim2) {
     return a;
 }
 
-void free_matrix_mem(float** matrix) {
+void free_matrix_mem(double** matrix) {
     /*
     * Frees memory allocated for a matrix.
     * Parameters:
@@ -181,12 +181,12 @@ char* read_line(FILE* file, size_t* buffer_size) {
     return line;
 }
 
-int parse_line_to_array(char *line, float *row, int d) {
+int parse_line_to_array(char *line, double *row, int d) {
     /*
-    * Parses a comma-separated string into an array of floats.
+    * Parses a comma-separated string into an array of doubles.
     * Parameters:
     *   - line: Input string containing comma-separated values.
-    *   - row: Array to store parsed float values.
+    *   - row: Array to store parsed double values.
     *   - d: Expected number of values (columns).
     * Returns:
     *   - 1 if parsing is successful, 0 if an error occurs.
@@ -194,7 +194,7 @@ int parse_line_to_array(char *line, float *row, int d) {
     char *ptr = line;
     int j = 0;
     while (*ptr != '\0' && *ptr != '\n' && j < d) {
-        if (sscanf(ptr, "%f", &row[j]) == 1) {
+        if (sscanf(ptr, "%lf", &row[j]) == 1) {
             if(*ptr == '-') ptr++;
             while ((*ptr >= '0' && *ptr <= '9')) ptr++; 
             if (*ptr == '.') {
@@ -210,12 +210,12 @@ int parse_line_to_array(char *line, float *row, int d) {
     return (j == d);
 }
 
-int init_X(FILE* file, float** X, int n, int d) {
+int init_X(FILE* file, double** X, int n, int d) {
     /*
     * Reads matrix values from a text file into X.
     * Parameters:
     *   - file: Open file pointer to read from.
-    *   - X: 2D float array (size n x d) to store parsed values.
+    *   - X: 2D double array (size n x d) to store parsed values.
     *   - n: Number of rows in X.
     *   - d: Number of columns in X.
     * Returns:
@@ -237,7 +237,7 @@ int init_X(FILE* file, float** X, int n, int d) {
     return 1;
 }
 
-float** create_X(FILE* file, int n, int d){
+double** create_X(FILE* file, int n, int d){
     /*
     * Creates and initializes a matrix X from a txt file.
     * Params:
@@ -245,10 +245,10 @@ float** create_X(FILE* file, int n, int d){
     * 
     * 
     * Returns:
-    *   - Pointer to a n x d matrix (float**).
+    *   - Pointer to a n x d matrix (double**).
     *   - NULL if an error occurs.
     */
-    float** X;    
+    double** X;    
     X = init_matrix_mem(n, d);
     if (!init_X(file, X, n, d)){
         return NULL;

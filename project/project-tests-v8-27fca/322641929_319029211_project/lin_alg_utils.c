@@ -4,19 +4,43 @@
 # include <math.h>
 # include "symnmf.h"
 
-float calc_euclid_dist(float *a, float *b, int d){
+int check_convergence(double** H, double** H_next, int n, int k){
+    /*
+    * Checks if the convergence condition has been met by comparing the Frobenius norm 
+    * of the difference between two matrices H and H_next to a predefined threshold eps.
+    * Parameters:
+    *   - H: Pointer to the matrix H (size n x k).
+    *   - H_next: Pointer to the matrix H_next (size n x k).
+    *   - n: The number of rows in both matrices.
+    *   - k: The number of columns in both matrices.
+    * Returns:
+    *   - 1 if convergence is reached (i.e., norm < eps).
+    *   - 0 if convergence is not reached.
+    *   - -1 if there was an error.
+    */
+    double norm = calc_frob_norm(H, H_next, n, k);
+    if (norm < 0){
+        return -1;
+    }
+    if (norm < eps){
+        return 1;
+    }
+    return 0;
+}
+
+double calc_euclid_dist(double *a, double *b, int d){
     /*
     * Computes the squared Euclidean distance between two d-dimensional points.
     * Params:
-    *   - a: Pointer to the first point (float array).
-    *   - b: Pointer to the second point (float array).
+    *   - a: Pointer to the first point (double array).
+    *   - b: Pointer to the second point (double array).
     *   - d: Number of dimensions.
     * Returns:
     *   - The squared Euclidean distance between a and b.
     */
     int i;
-    float dist = 0;
-    float tmp = 0;
+    double dist = 0;
+    double tmp = 0;
     for (i = 0; i < d; i++){
         tmp = a[i] - b[i];
         tmp = pow(tmp, 2);
@@ -25,23 +49,23 @@ float calc_euclid_dist(float *a, float *b, int d){
     return dist;
 }
 
-float calc_similarity(float *a, float *b, int d){
+double calc_similarity(double *a, double *b, int d){
     /*
     * Computes the similarity between two d-dimensional points.
     * Params:
-    *   - a: Pointer to the first point (float array).
-    *   - b: Pointer to the second point (float array).
+    *   - a: Pointer to the first point (double array).
+    *   - b: Pointer to the second point (double array).
     *   - d: Number of dimensions.
     * Returns:
     *   - The similarity value between a and b.
     */
-    float dist = calc_euclid_dist(a, b, d);
-    float value;
+    double dist = calc_euclid_dist(a, b, d);
+    double value;
     value = exp(-0.5 * dist);
     return value;
 }
 
-float** calc_similarity_matrix(float **X, int n, int d){
+double** calc_similarity_matrix(double **X, int n, int d){
     /*
     * Computes the similarity matrix for a dataset.
     * Params:
@@ -53,7 +77,7 @@ float** calc_similarity_matrix(float **X, int n, int d){
     *   - NULL if memory allocation fails.
     */
     int i, j;
-    float **A;
+    double **A;
     A = init_matrix_mem(n, n);
     if (A == NULL) return NULL;
     for (i = 0; i < n; i++){
@@ -69,18 +93,18 @@ float** calc_similarity_matrix(float **X, int n, int d){
     return A;
 }
 
-float* calc_diag_deg_vec(float **A, int n){
+double* calc_diag_deg_vec(double **A, int n){
     /*
     * Computes the diagonal degree vector for a similarity matrix.
     * Params:
     *   - A: Pointer to the similarity matrix (n x n).
     *   - n: Number of data points (rows).
     * Returns:
-    *   - Pointer to a vector (float array) of size n, representing a diagonal matrix.
+    *   - Pointer to a vector (double array) of size n, representing a diagonal matrix.
     */
     int i, j;
-    float d_i;
-    float *D = init_vec_mem(n);
+    double d_i;
+    double *D = init_vec_mem(n);
     if (D == NULL) return NULL;
     for (i = 0; i < n; i++){
         d_i = 0;
@@ -92,14 +116,14 @@ float* calc_diag_deg_vec(float **A, int n){
     return D;
 }
 
-void calc_inv_sqrt(float *D, int n){
+void calc_inv_sqrt(double *D, int n){
         /*
         * Computes D^-(1/2), the inverted sqrt of a n dim diagonal matrix D.
         * Params:
-        *   - D: Diagonal matrix, represented by an n sized vector (float array).
+        *   - D: Diagonal matrix, represented by an n sized vector (double array).
         *   - n: Number of data points (rows).
         * Returns:
-        *   - Pointer to a vector (float array) of size n, representing the matrix after the transformation.
+        *   - Pointer to a vector (double array) of size n, representing the matrix after the transformation.
         */
     int i;
     for (i = 0; i < n; i++){
@@ -109,12 +133,12 @@ void calc_inv_sqrt(float *D, int n){
     }
 }
 
-void calc_norm_sim_matrix(float **W, float **A, float *D, int n){
+void calc_norm_sim_matrix(double **W, double **A, double *D, int n){
     /*
     * Computes the normalized similarity matrix
     * Params:
     *   - A: Pointer to the similarity matrix (n * n).
-    *   - D: Diagonal matrix, represented by an n sized vector (float array).
+    *   - D: Diagonal matrix, represented by an n sized vector (double array).
     *   - n: Number of data points (rows).
     * Returns:
     *   - Pointer to the computed n x n norm similarity matrix.
@@ -128,7 +152,7 @@ void calc_norm_sim_matrix(float **W, float **A, float *D, int n){
     }
 }
 
-float** transpose(float **H, int n, int k){
+double** transpose(double **H, int n, int k){
     /*
     * Computes the transposed matrix.
     * Params:
@@ -139,7 +163,7 @@ float** transpose(float **H, int n, int k){
     *   - Pointer to the transposed matrix.
     */
     int i, j;
-    float **H_T = init_matrix_mem(k, n);
+    double **H_T = init_matrix_mem(k, n);
     if (H_T == NULL){
         printf("An Error Has Occurred\n");
         return NULL;
@@ -152,7 +176,7 @@ float** transpose(float **H, int n, int k){
     return H_T;
 }
 
-void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, float** prod){
+void mat_mult(int a_rows, int a_cols, int b_cols, double** mat_a, double** mat_b, double** prod){
     /*
     * Computes matrix multiplication.
     * Params:
@@ -166,7 +190,7 @@ void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, 
     *   - None
     */
     int i, j, l;
-    float sum;
+    double sum;
     for (i = 0; i < a_rows; i++){
         for (j = 0; j < b_cols; j++){
             sum = 0;
@@ -178,7 +202,7 @@ void mat_mult(int a_rows, int a_cols, int b_cols, float** mat_a, float** mat_b, 
     }
 }
 
-float inner_prod(float* vec_a, float *vec_b, int dim){
+double inner_prod(double* vec_a, double *vec_b, int dim){
     /*
     * Computes the inner product (dot product) of two vectors vec_a and vec_b of size dim.
     * Parameters:
@@ -186,9 +210,9 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
     *   - vec_b: Pointer to the second vector (size dim).
     *   - dim: The size (dimension) of the vectors.
     * Returns:
-    *   - The inner product of the two vectors as a float.
+    *   - The inner product of the two vectors as a double.
     */
-    float prod;
+    double prod;
     int i;
     prod = 0;
     for (i = 0; i < dim; i++){
@@ -197,7 +221,7 @@ float inner_prod(float* vec_a, float *vec_b, int dim){
     return prod;
 }
 
-int compute_intermediate_matrices(float** H, int n, int k, float** HT, float** H_HT, float** H_HT_H) {
+int compute_intermediate_matrices(double** H, int n, int k, double** HT, double** H_HT, double** H_HT_H) {
     /*
     * Allocates and computes intermediate matrices required for updating H.
     * Parameters:
@@ -216,7 +240,7 @@ int compute_intermediate_matrices(float** H, int n, int k, float** HT, float** H
     return 1;
 }
 
-float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
+double** mat_sub( int dim1, int dim2, double** mat_a, double** mat_b){
     /*
     * Computes the element-wise subtraction of two matrices mat_a and mat_b.
     * Parameters:
@@ -228,7 +252,7 @@ float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
     *   - Pointer to the resulting matrix (dim1 x dim2) containing the element-wise differences.
     */
     int i, j;
-    float** sub;
+    double** sub;
     sub = init_matrix_mem(dim1, dim2);
     if (sub == NULL){
         return NULL;
@@ -241,7 +265,7 @@ float** mat_sub( int dim1, int dim2, float** mat_a, float** mat_b){
     return sub;
 }
 
-float calc_frob_norm(float** H, float** H_next, int n, int k){
+double calc_frob_norm(double** H, double** H_next, int n, int k){
     /*
     * Calculates the Frobenius norm of the difference between two matrices H and H_next.
     * The Frobenius norm is computed as the square root of the sum of the squared element-wise 
@@ -252,11 +276,11 @@ float calc_frob_norm(float** H, float** H_next, int n, int k){
     *   - n: The number of rows in both matrices.
     *   - k: The number of columns in both matrices.
     * Returns:
-    *   - The Frobenius norm as a float.
+    *   - The Frobenius norm as a double.
     */
     int i, j;
-    float norm = 0;
-    float** sub = mat_sub(n, k, H_next, H);
+    double norm = 0;
+    double** sub = mat_sub(n, k, H_next, H);
     if (sub == NULL){
         return -1;
     }

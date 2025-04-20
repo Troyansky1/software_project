@@ -4,7 +4,32 @@
 # include <math.h>
 # include "symnmf.h"
 
-float** update_H(float** H, float** W, int n, int k) {
+double* derive_clustering_sol(double** H, int n, int k){
+    /*
+    * Derive the clustering solution for analysis.
+    * Parameters:
+    *   - H: Pointer to the matrix H (n x k).
+    *   - k: The number of columns in matrix H (and matrix W).
+    *   - n: The number of rows in matrix H (and matrix W).
+    * Returns:
+    *   - The clustering solution as a vector.
+    */
+    int i, j;
+    double max;
+    double* hard_clustering = init_vec_mem(n);
+    for (i = 0; i < n; i++){
+        max = 0;
+        for (j = 0; j < k; j++){
+            if (H[i][j] > max){
+                max = H[i][j];
+                hard_clustering[i] = j;
+            }
+        }
+    }
+    return hard_clustering;
+}
+
+double** update_H(double** H, double** W, int n, int k) {
     /*
     * Updates matrix H using matrix factorization techniques.
     * Parameters:
@@ -16,11 +41,10 @@ float** update_H(float** H, float** W, int n, int k) {
     *   - Pointer to the updated matrix H_next (size n x k).
     */
     int i, j;
-    float beta = 0.5, W_H_ij;
-    float **HT, **H_HT, **H_HT_H, **H_next;
+    double beta = 0.5, W_H_ij;
+    double **HT, **H_HT, **H_HT_H, **H_next;
     HT = transpose(H, n, k);
-    /*print_matrix(HT, k, n);*/
-    if (HT == NULL) return 0;
+    if (HT == NULL) return NULL;
     H_HT = init_matrix_mem(n, n);
     if (H_HT == NULL) {
         free_matrix_mem(HT);
@@ -53,31 +77,7 @@ float** update_H(float** H, float** W, int n, int k) {
     return H_next;
 }
 
-int check_convergence(float** H, float** H_next, int n, int k){
-    /*
-    * Checks if the convergence condition has been met by comparing the Frobenius norm 
-    * of the difference between two matrices H and H_next to a predefined threshold eps.
-    * Parameters:
-    *   - H: Pointer to the matrix H (size n x k).
-    *   - H_next: Pointer to the matrix H_next (size n x k).
-    *   - n: The number of rows in both matrices.
-    *   - k: The number of columns in both matrices.
-    * Returns:
-    *   - 1 if convergence is reached (i.e., norm < eps).
-    *   - 0 if convergence is not reached.
-    *   - -1 if there was an error.
-    */
-    float norm = calc_frob_norm(H, H_next, n, k);
-    if (norm < 0){
-        return -1;
-    }
-    if (norm < eps){
-        return 1;
-    }
-    return 0;
-}
-
-float** run_symnmf(float** W, float** H, int k, int n, int print){
+double** run_symnmf(double** W, double** H, int k, int n, int print){
     /*
     * Performs the symmetric non-negative matrix factorization algorithm 
     * Iterates until convergence is smaller than epsilon or until it reaches the max number of iterations.
@@ -90,7 +90,7 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
     * Returns:
     *   - Pointer to the updated matrix H_next (n x k).
     */
-    float **H_next; 
+    double **H_next; 
     int convergence = 0;
     int i = 0;  
     while (!convergence && i <= MAX_ITER){  
@@ -117,30 +117,10 @@ float** run_symnmf(float** W, float** H, int k, int n, int print){
     return H_next;
 }
 
-void run_sym(float **X, int n, int d){
-    /*
-    * Computes the similarity matrix A from the input matrix X and prints the resulting matrix A. 
-    * Parameters:
-    *   - X: Pointer to the matrix X (n x d).
-    *   - n: The number of data points (number of rows in the matrix X and number of rows and columns in matrix A).
-    *   - d: The number of columns in the matrix X.
-    * Returns:
-    *   - None.
-    */
-    float ** A;
-    A = calc_similarity_matrix(X, n, d);
-    if (A == NULL) {
-        printf("An Error Has Occurred\n");
-        return;
-    }
-    print_matrix(A, n, n);
-    free_matrix_mem(A);
-}
 
-void run_ddg(float **X, int n, int d){
+double** run_norm(double **W, double **X, int n, int d, int print){
     /*
-    * Computes the diagonal degree matrix D from the similarity matrix A, 
-    * which is derived from the input matrix X. prints D at the end.
+    * Computes the normalized similarity matrix W from the input matrix X and prints it.
     * Parameters:
     *   - X: Pointer to the matrix X (n x d).
     *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
@@ -148,36 +128,8 @@ void run_ddg(float **X, int n, int d){
     * Returns:
     *   - None.
     */
-    float **A;
-    float *D;
-    A = calc_similarity_matrix(X, n, d);
-    if (A == NULL) {
-        printf("An Error Has Occurred\n");
-        return;
-    }
-    D = calc_diag_deg_vec(A, n);
-    if (D == NULL) {
-        free_matrix_mem(A);
-        printf("An Error Has Occurred\n");
-        return;
-    }
-    print_diag_matrix(D, n);
-    free_matrix_mem(A);
-    free(D);
-}
-
-float** run_norm(float **W, float **X, int n, int d, int print){
-    /*
- * Computes the normalized similarity matrix W from the input matrix X and prints it.
- * Parameters:
-    *   - X: Pointer to the matrix X (n x d).
-    *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
-    *   - d: The number of columns in matrix X.
- * Returns:
- *   - None.
- */
-    float *D;
-    float **A;
+    double *D;
+    double **A;
     A = calc_similarity_matrix(X, n, d);
     if (A == NULL) {
         printf("An Error Has Occurred\n");
@@ -205,7 +157,56 @@ float** run_norm(float **W, float **X, int n, int d, int print){
     return W;
 }
 
-void run_goal(char* goal, float** X, int n, int d){
+void run_ddg(double **X, int n, int d){
+    /*
+    * Computes the diagonal degree matrix D from the similarity matrix A, 
+    * which is derived from the input matrix X, and prints it.
+    * Parameters:
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
+    *   - d: The number of columns in matrix X.
+    * Returns:
+    *   - None.
+    */
+    double **A;
+    double *D;
+    A = calc_similarity_matrix(X, n, d);
+    if (A == NULL) {
+        printf("An Error Has Occurred\n");
+        return;
+    }
+    D = calc_diag_deg_vec(A, n);
+    if (D == NULL) {
+        free_matrix_mem(A);
+        printf("An Error Has Occurred\n");
+        return;
+    }
+    print_diag_matrix(D, n);
+    free_matrix_mem(A);
+    free(D);
+}
+
+void run_sym(double **X, int n, int d){
+    /*
+    * Computes the similarity matrix A from the input matrix X and prints it. 
+    * Parameters:
+    *   - X: Pointer to the matrix X (n x d).
+    *   - n: The number of data points (number of rows in the matrix X and number of rows and columns in matrix A).
+    *   - d: The number of columns in the matrix X.
+    * Returns:
+    *   - None.
+    */
+    double ** A;
+    A = calc_similarity_matrix(X, n, d);
+    if (A == NULL) {
+        printf("An Error Has Occurred\n");
+        return;
+    }
+    print_matrix(A, n, n);
+    free_matrix_mem(A);
+}
+
+void run_goal(char* goal, double** X, int n, int d){
     /*
     * Executes a specific function based on the provided goal string. The function checks 
     * the value of goal and calls the corresponding function: sym, ddg, or norm. 
@@ -225,7 +226,7 @@ void run_goal(char* goal, float** X, int n, int d){
         run_ddg(X, n, d);
     }
     else if (strcmp(goal, "norm") == 0){
-        float** W = init_matrix_mem(n, n);
+        double** W = init_matrix_mem(n, n);
         if (W == NULL){
             printf("An Error Has Occurred\n");
             return;
@@ -238,34 +239,9 @@ void run_goal(char* goal, float** X, int n, int d){
     }
 }
 
-float* derive_clustering_sol(float** H, int n, int k){
-    /*
-    * Derive the clustering solution for analysis.
-    * Parameters:
-    *   - H: Pointer to the matrix H (n x k).
-    *   - k: The number of columns in matrix H (and matrix W).
-    *   - n: The number of rows in matrix H (and matrix W).
-    * Returns:
-    *   - The clustering solution
-    */
-    int i, j;
-    float max;
-    float* hard_clustering = init_vec_mem(n);
-    for (i = 0; i < n; i++){
-        max = 0;
-        for (j = 0; j < k; j++){
-            if (H[i][j] > max){
-                max = H[i][j];
-                hard_clustering[i] = j;
-            }
-        }
-    }
-    return hard_clustering;
-}
-
 int main(int argc, char **argv){
-        /*
-    * Derive the clustering solution for analysis.
+    /*
+    * Validates the arguments and calls run_goal with given parameters.
     * Parameters:
     *   - argc: The arguments count.
     *   - argv[2]: The input file path.
@@ -273,7 +249,7 @@ int main(int argc, char **argv){
     * Returns:
     *   - 1 if there was an error, else 0.
     */
-    float** X;
+    double** X;
     char* goal;
     int n, d;
     FILE *fp;

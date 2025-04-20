@@ -18,6 +18,7 @@ def derive_clustering_sol(H):
     pd_H = pd.DataFrame(H)
     return pd_H.idxmax(axis=1)
 
+
 def init_centroids(K, X):
     """
     Initialize the first K centroids from the dataset.
@@ -28,6 +29,7 @@ def init_centroids(K, X):
       - List of the first K data points as initial centroids.
     """
     return [X[i] for i in range(K)]
+
 
 def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):    
     """
@@ -46,6 +48,7 @@ def assign_to_cluster(vec_xi, i, centroids, cent_to_dots_map, dot_to_cent_map):
     cent_to_dots_map[closest_centroid].append(vec_xi)
     dot_to_cent_map[i] = closest_centroid
 
+
 def update_centroids(centroids, cent_to_dots_map):
     """
     Update centroids by computing the mean of assigned data points.
@@ -58,6 +61,7 @@ def update_centroids(centroids, cent_to_dots_map):
     for i, dots in cent_to_dots_map.items():
         if dots:
             centroids[i] = np.mean(dots, axis=0)
+
 
 def check_convergence(centroids, prev, eps):
     """
@@ -101,9 +105,10 @@ def run_kmeans(K, datapoints, max_iter):
     centroids_list = [arr.tolist() if isinstance(arr, np.ndarray) else arr for arr in centroids]
     return centroids_list, dot_to_cent_map
 
+
 def init_H(W, n, k):
     """
-    Randomly initialize H with values from the interval [0, 2 ∗ sqrt(m/k)].
+    Randomly initialize H with values from the interval [0, 2 * sqrt(m/k)].
     Params:
       - W: Pandas DataFrame of the normalized similarity matrix (n * n).
       - k: Number of clusters (columns).
@@ -118,6 +123,7 @@ def init_H(W, n, k):
         return H
     else:
         pass
+
 
 def run_symnmf(k, X):
     """
@@ -155,6 +161,7 @@ def compare(data_points, k):
     print("nmf:", f"{nmf_score:.4f}" )
     print("kmeans:", f"{kmeans_score:.4f}")
 
+
 def validate_input(K, filename):
     """
     Validate the user arguments.
@@ -176,6 +183,7 @@ def validate_input(K, filename):
     except IOError: 
         return False
     
+
 def main(args):
     """
     Validates the arguments and runs the goal with the given parameters.
