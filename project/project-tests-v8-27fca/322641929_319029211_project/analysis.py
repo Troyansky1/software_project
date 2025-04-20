@@ -79,12 +79,10 @@ def check_convergence(centroids, prev, eps):
 def run_kmeans(K, datapoints, max_iter):
     """
     Run the K-means clustering algorithm.
-    
     Parameters:
       - K: Number of clusters.
       - datapoints: List or array of data vectors.
       - max_iter: Maximum number of iterations.
-    
     Returns:
       - Final centroids as a list of lists.
       - Cluster assignment list for each datapoint.

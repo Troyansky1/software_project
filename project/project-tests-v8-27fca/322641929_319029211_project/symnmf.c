@@ -29,6 +29,24 @@ double* derive_clustering_sol(double** H, int n, int k){
     return hard_clustering;
 }
 
+int check_matrix_inits(double** A, double** B, double** C, double** D){
+    /*
+    * Checks if the memory allocation for matrices was successful.
+    * Parameters:
+    *   - A,B,C,D: Pointers to the doube matrices.
+    * Returns:
+    *   - 1 if all matrices are not NULL, 0 otherwise.
+    */
+    if (A == NULL || B == NULL || C == NULL || D == NULL) {
+        if (A != NULL) free_matrix_mem(A);
+        if (B != NULL) free_matrix_mem(B);
+        if (C != NULL) free_matrix_mem(C);
+        if (D != NULL) free_matrix_mem(D);
+        return 0;
+    }
+    return 1;
+}
+
 double** update_H(double** H, double** W, int n, int k) {
     /*
     * Updates matrix H using matrix factorization techniques.
@@ -44,26 +62,11 @@ double** update_H(double** H, double** W, int n, int k) {
     double beta = 0.5, W_H_ij;
     double **HT, **H_HT, **H_HT_H, **H_next;
     HT = transpose(H, n, k);
-    if (HT == NULL) return NULL;
     H_HT = init_matrix_mem(n, n);
-    if (H_HT == NULL) {
-        free_matrix_mem(HT);
-        return NULL;
-    }
     H_HT_H = init_matrix_mem(n, k);
-    if (H_HT_H == NULL) {
-        free_matrix_mem(HT);
-        free_matrix_mem(H_HT);
-        return NULL;
-    }
-    if (!compute_intermediate_matrices(H, n, k, HT, H_HT, H_HT_H)) return NULL;
     H_next = init_matrix_mem(n, k);
-    if (H_next == NULL) {
-        free_matrix_mem(HT);
-        free_matrix_mem(H_HT);
-        free_matrix_mem(H_HT_H);
-        return NULL;
-    }
+    if(!check_matrix_inits(HT, H_HT, H_HT_H, H_next)) return NULL;
+    if (!compute_intermediate_matrices(H, n, k, HT, H_HT, H_HT_H)) return NULL;
     for (i = 0; i < n; i++) {
         for (j = 0; j < k; j++) {
             W_H_ij = inner_prod(W[i], HT[j], n);
@@ -117,7 +120,6 @@ double** run_symnmf(double** W, double** H, int k, int n, int print){
     return H_next;
 }
 
-
 double** run_norm(double **W, double **X, int n, int d, int print){
     /*
     * Computes the normalized similarity matrix W from the input matrix X and prints it.
@@ -126,7 +128,7 @@ double** run_norm(double **W, double **X, int n, int d, int print){
     *   - n: The number of data points (rows in matrix X and the size of the diagonal matrix D).
     *   - d: The number of columns in matrix X.
     * Returns:
-    *   - None.
+    *   - Pointer to the normalized similarity matrix W (n x n).
     */
     double *D;
     double **A;

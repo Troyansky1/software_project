@@ -82,7 +82,6 @@ PyObject *sym(PyObject *self, PyObject *args){
     if (!PyArg_ParseTuple(args, "O", &Py_X)){
         return NULL;
     }
-    /* warning: passing argument 1 of ‘PyObject_Size’ from incompatible pointer type */
     n = PyObject_Length(Py_X);
     d = PyObject_Length(PyList_GetItem(Py_X, 0));
 

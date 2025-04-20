@@ -8,7 +8,7 @@ np.random.seed(1234)
 
 def init_H(W, n, k):
     """
-    Randomly initialize H with values from the interval [0, 2 * sqrt(m/k)].
+    Randomly initialize Pandas DataFrame H with values from the interval [0, 2 * sqrt(m/k)].
     Parameters:
       - W: Pandas DataFrame of the normalized similarity matrix (n * n).
       - n: Number of data points (rows).
@@ -27,13 +27,13 @@ def init_H(W, n, k):
 
 def deploy(goal, X, k):
     """
-    Run the goal received as argument.
+    Run the goal received as argument, and print the result.
     Parameters:
       - goal: A string indicating the goal to execute. It can be "symnmf","sym", "ddg", or "norm".
       - X: The input data.
       - k: Number of clusters (columns).
-    Prints:
-        - The result of the goal.
+    Returns:
+        - None.
     """
     if (goal == "symnmf"):
         W = snmf.norm(X, 0)
@@ -43,7 +43,7 @@ def deploy(goal, X, k):
     elif (goal == "sym"):
         snmf.sym(X)
     elif (goal == "ddg"):
-          snmf.ddg(X)
+        snmf.ddg(X)
     elif (goal == "norm"):
         snmf.norm(X, 1)
         
@@ -81,7 +81,9 @@ def main(args):
     Parameters:
       - arg[1] K: Number of clusters.
       - arg[2] goal: A string indicating the goal to execute. Can be "symnmf","sym", "ddg", or "norm".
-      - arg[3] filename: The input filename.         
+      - arg[3] filename: The input filename.      
+    Returns:
+        - None.   
     """
     if (len(args) == 4):
         k, goal, file_name = args[1:]
