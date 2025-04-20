@@ -84,8 +84,15 @@ PyObject *sym(PyObject *self, PyObject *args){
     }
     n = PyObject_Length(Py_X);
     d = PyObject_Length(PyList_GetItem(Py_X, 0));
-
+    if (d < 1) {
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     X = getMatrix(Py_X, n, d);
+    if (!X) { 
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     run_sym(X, n, d);
     free_matrix_mem(X);
     return self;
@@ -102,11 +109,20 @@ PyObject *ddg(PyObject *self, PyObject *args){
     int n, d;
 
     if (!PyArg_ParseTuple(args, "O", &Py_X)){
+        printf("An Error Has Occurred\n");
         return NULL;
     }
     n = PyObject_Length(Py_X);
     d = PyObject_Length(PyList_GetItem(Py_X, 0));
+    if (d < 1) {
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     X = getMatrix(Py_X, n, d);
+    if (!X) { 
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     run_ddg(X, n, d);
     free_matrix_mem(X);
     return self;
@@ -127,24 +143,24 @@ PyObject *norm(PyObject *self, PyObject *args){
     int n, d;
     int print;
     if (!PyArg_ParseTuple(args, "Oi", &Py_X, &print)){
-        printf("Error: PyArg_ParseTuple\n");
+        printf("An Error Has Occurred\n");
         return NULL;
     }
     PyObject* first_row = PyList_GetItem(Py_X, 0);
     d = PyObject_Length(first_row);
     n = PyObject_Length(Py_X);
     if (d < 1) {
-        printf("Error: First row is empty\n");
+        printf("An Error Has Occurred\n");
         return NULL;
     }
     X = getMatrix(Py_X, n, d);
     if (!X) { 
-        printf("Error: getMatrix() failed\n");
+        printf("An Error Has Occurred\n");
         return NULL;
     }
     double** W = init_matrix_mem(n, n);
     if (W == NULL){
-        printf("Error: init_matrix_mem failed\n");
+        printf("An Error Has Occurred\n");
         return NULL;
     } 
     run_norm(W, X, n, d, print); 
@@ -164,24 +180,30 @@ PyObject* symnmf(PyObject *self, PyObject *args){
     * Returns:
     *   - The final association matrix (H) as a PyObject
     */
-    PyObject *Py_H;
-    PyObject *Py_W;
-    PyObject *Py_final_H;
-    double **H;
-    double **W;
-    double **final_H;
-    int k;
-    int n;
-    int print;
+    PyObject *Py_H, *Py_W, *Py_final_H;
+    double **H, **W, **final_H;
+    int k, n, print;
 
     if (!PyArg_ParseTuple(args, "OOii", &Py_H, &Py_W, &k, &print)){
         return NULL;
     }
     n = PyObject_Length(Py_H);
-    H = getMatrix(Py_H, n, k); 
+    H = getMatrix(Py_H, n, k);
+    if (!H) { 
+        printf("An Error Has Occurred\n");
+        return NULL;
+    } 
     W = getMatrix(Py_W, n, n);
+    if (!W) { 
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     final_H = run_symnmf(W, H, k, n, print);
     Py_final_H = matrix_to_pyobject(final_H, n, k); 
+    if (!Py_final_H) { 
+        printf("An Error Has Occurred\n");
+        return NULL;
+    }
     free_matrix_mem(W);
     return Py_final_H;
 }
